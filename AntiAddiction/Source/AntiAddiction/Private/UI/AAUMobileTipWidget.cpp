@@ -1,14 +1,12 @@
 #include "AAUMobileTipWidget.h"
 
 #include "TUSettings.h"
-#include "Server/AAUHelper.h"
-#include "Server/AAUImpl.h"
+#include "Components/NativeWidgetHost.h"
+#include "Controller/TapControllerManager.h"
+#include "Controller/TapControllerTip.h"
+#include "UMG/Components/TapButton.h"
 
 
-UAAUMobileTipWidget::UAAUMobileTipWidget(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
-{
-
-}
 
 
 UAAUMobileTipWidget* UAAUMobileTipWidget::ShowUI() {
@@ -43,12 +41,35 @@ void UAAUMobileTipWidget::SetContent(const FString& Title, const FString& Conten
 	SubButtonLabel->SetText(FText::FromString(ComfirmStr));
 }
 
+void UAAUMobileTipWidget::NativeOnInitialized()
+{
+	Super::NativeOnInitialized();
+	ControllerTip = SNew(STapControllerTip);
+	ControllerTipHost->SetContent(ControllerTip.ToSharedRef());
+}
+
 void UAAUMobileTipWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 	
 	SubmitBtn->OnClicked.AddUniqueDynamic(this, &UAAUMobileTipWidget::OnSubmitBtnClick);
 
+	TSharedRef<FTapControllerWidgetData> NewData = MakeShared<FTapControllerWidgetData>(this);
+	NewData->StartupFocusWidget = SubmitBtn->GetCachedWidget();
+	NewData->ControllerTip = ControllerTip;
+	NewData->ControllerTip->SetForceLanguageType(ELanguageType::VI);
+	FTapControllerManager::Get().RegisterWidget(NewData);
+}
+
+void UAAUMobileTipWidget::NativeDestruct()
+{
+	Super::NativeDestruct();
+	FTapControllerManager::Get().UnregisterWidget(this);
+}
+
+FNavigationReply UAAUMobileTipWidget::NativeOnNavigation(const FGeometry& MyGeometry, const FNavigationEvent& InNavigationEvent, const FNavigationReply& InDefaultReply)
+{
+	return FNavigationReply::Stop();
 }
 
 

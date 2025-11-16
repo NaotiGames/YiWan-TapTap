@@ -21,6 +21,13 @@ enum class ELanguageType : uint8
 	KO,			// 韩语
 	TH,			// 泰文
 	ID,			// 印尼文
+	DE, 		// 德语
+	ES, 		// 西班牙语
+	FR, 		// 法语
+	PT, 		// 葡萄牙语
+	RU, 		// 俄语
+	TR, 		// 土耳其语
+	VI, 		// 越南语
 };
 
 USTRUCT(BlueprintType)
@@ -37,6 +44,27 @@ struct TAPCOMMON_API FBillboardConfig
 	FString BillboardUrl;
 };
 
+UENUM()
+enum class ETapAntiAddictionConfigRegion : uint8 {
+	China,			// 国内            
+	Vietnam,		// 越南  
+};
+
+USTRUCT(BlueprintType)
+struct TAPCOMMON_API FTapAntiAddictionConfig
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bShowSwitchAccount = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bUseAgeRange = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	ETapAntiAddictionConfigRegion Region = ETapAntiAddictionConfigRegion::China;
+};
+
 USTRUCT(BlueprintType)
 struct TAPCOMMON_API FTUConfig
 {
@@ -48,6 +76,9 @@ struct TAPCOMMON_API FTUConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString ClientToken;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString ClientPublicKey;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	ERegionType RegionType = ERegionType::CN;
 
@@ -74,6 +105,8 @@ struct TAPCOMMON_API FTUConfig
 	FTapDB DBConfig;
 		
 	TSharedPtr<FBillboardConfig> BillboardConfig;
+
+	TSharedPtr<FTapAntiAddictionConfig> TapAntiAddictionConfig;
 	
 private:
 	static TSharedPtr<FTUConfig> Instance;
@@ -89,3 +122,6 @@ namespace TUType {
 		static FString Email;
 	};
 }
+
+TAPCOMMON_API DECLARE_LOG_CATEGORY_EXTERN(LogTap, Log, All);
+

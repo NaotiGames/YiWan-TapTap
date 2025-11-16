@@ -22,7 +22,7 @@ public:
 	TSharedPtr<FTUError> GetError() const;
 
 private:
-	Type Type = Cancel;
+	Type ResultType = Cancel;
 	TSharedPtr<FTUAccessToken> Token = nullptr;
 	TSharedPtr<FTUError> Error = nullptr;
 	

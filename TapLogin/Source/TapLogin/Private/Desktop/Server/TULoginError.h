@@ -17,5 +17,7 @@ struct FTULoginError
 
 	UPROPERTY()
 	FString error_description;
+
+	int64 now = -1;
 	
 };

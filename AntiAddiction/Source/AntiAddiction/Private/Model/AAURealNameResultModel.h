@@ -16,23 +16,17 @@ struct FAAURealNameResultModel
 	GENERATED_BODY()
 	
 	UPROPERTY()
-	int status = 0;
-
-	UPROPERTY()
-	int age_limit = 0;
+	FString status ;
 
 	UPROPERTY()
 	FString anti_addiction_token;
 
-	UPROPERTY()
-	bool has_auth_record = false;
-
 	AuthState GetAuthState() {
-		if (status == Success) {
+		if (status.Equals("pass")) {
 			return Success;
-		} else if (status == Verifying) {
+		} else if (status.Equals("waiting")) {
 			return Verifying;
-		} else if (status == Fail) {
+		} else if (status.Equals("failed")) {
 			return Fail;
 		} else {
 			return Success;

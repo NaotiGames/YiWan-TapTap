@@ -2,23 +2,22 @@
 
 #include "AntiAddiction.h"
 
-#include "Slate/TapStyleAntiAddiction.h"
-
-#define LOCTEXT_NAMESPACE "FAntiAddictionModule"
+#include "Styling/SlateStyleRegistry.h"
+#define TAP_STYLE_NAME_ANTI_ADDICTION "Tap.AntiAddiction"
 
 void FAntiAddictionModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
-	FTapStyleAntiAddiction::Initialize();
+#if PLATFORM_DESKTOP
+	Style = FSlateGameResources::New(TAP_STYLE_NAME_ANTI_ADDICTION, "/AntiAddiction/Desktop2/Styles", "/AntiAddiction/Desktop2/Styles");
+#else
+	Style = FSlateGameResources::New(TAP_STYLE_NAME_ANTI_ADDICTION, "/AntiAddiction/Mobile2/Styles", "/AntiAddiction/Mobile2/Styles");
+#endif
+	FSlateStyleRegistry::RegisterSlateStyle(*Style);
 }
 
 void FAntiAddictionModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
-	FTapStyleAntiAddiction::Shutdown();
+	FSlateStyleRegistry::UnRegisterSlateStyle(TAP_STYLE_NAME_ANTI_ADDICTION);
 }
-
-#undef LOCTEXT_NAMESPACE
 	
 IMPLEMENT_MODULE(FAntiAddictionModule, AntiAddiction)

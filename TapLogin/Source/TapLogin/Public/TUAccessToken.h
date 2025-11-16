@@ -3,7 +3,7 @@
 #include "TUAccessToken.generated.h"
 
 USTRUCT(BlueprintType)
-struct FTUAccessToken
+struct TAPLOGIN_API FTUAccessToken
 {
 	GENERATED_BODY()
 
@@ -23,7 +23,14 @@ struct FTUAccessToken
 	FString mac_algorithm;
 
 	UPROPERTY()
-	uint64 scope = 0;
+	FString scope;
+	
+	FORCEINLINE int32 ParseScope(TArray<FString>& OutScopes) const
+	{
+		return scope.ParseIntoArray(OutScopes, TEXT(" "), false);
+	}
+
+	bool ContainsScope(const TCHAR* InScope) const;
 
 #if PLATFORM_MAC || PLATFORM_WINDOWS
 

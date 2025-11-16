@@ -7,8 +7,8 @@
 #include "TapCommon.h"
 #include "TUHelper.h"
 #include "Blueprint/WidgetBlueprintLibrary.h"
-#include "Components/Button.h"
 #include "Components/NativeWidgetHost.h"
+#include "UMG/Components/TapButton.h"
 
 void UTapWebBrowser::LoadURL(const FString& InURL)
 {
@@ -97,7 +97,7 @@ void UTapWebBrowser::NativeOnInitialized()
 		.OnLoadError(FSimpleDelegate::CreateUObject(this, &UTapWebBrowser::HandleOnLoadError))
 		.OnBeforeNavigation(SWebBrowser::FOnBeforeBrowse::CreateUObject(this, &UTapWebBrowser::OnBeforeNavigation))
 		.OnBeforePopup(FOnBeforePopupDelegate::CreateUObject(this, &UTapWebBrowser::OnBeforePopup));
-
+		
 	WebBrowser->SetContent(Browser);
 
 	if (ITextInputMethodSystem* InputSys = FSlateApplication::Get().GetTextInputMethodSystem())
@@ -118,6 +118,15 @@ void UTapWebBrowser::NativeOnInitialized()
 	if (BTN_Retry)
 	{
 		BTN_Retry->OnClicked.AddDynamic(this, &UTapWebBrowser::Reload);
+	}
+}
+
+void UTapWebBrowser::NativeDestruct()
+{
+	Super::NativeDestruct();
+	if (TSharedPtr<ICursor> PlatformCursor = FSlateApplication::Get().GetPlatformCursor())
+	{
+		PlatformCursor->SetTypeShape(EMouseCursor::Custom, nullptr);
 	}
 }
 
@@ -153,6 +162,33 @@ bool UTapWebBrowser::OnBeforeNavigation(const FString& URL, const FWebNavigation
 bool UTapWebBrowser::OnBeforePopup(FString URL, FString FrameName)
 {
 	return false;
+}
+
+FNavigationReply UTapWebBrowser::NativeOnNavigation(const FGeometry& MyGeometry, const FNavigationEvent& InNavigationEvent, const FNavigationReply& InDefaultReply)
+{
+	switch (InNavigationEvent.GetNavigationType())
+	{
+	case EUINavigation::Down:
+		if (RetryPanel->GetVisibility() == ESlateVisibility::Hidden || RetryPanel->GetVisibility() == ESlateVisibility::Collapsed)
+		{
+			return FNavigationReply::Explicit(GetInnerWebBrowser());
+		}
+		else
+		{
+			if (BTN_Retry)
+			{
+				return FNavigationReply::Explicit(BTN_Retry->GetCachedWidget());
+			}
+		}
+	case EUINavigation::Up:
+		if (BTN_Close)
+		{
+			return FNavigationReply::Explicit(BTN_Close->GetCachedWidget());
+		}
+	default:
+		break;
+	}
+	return FNavigationReply::Stop();
 }
 
 void UTapWebBrowser::HandleOnURLChanged(const FText& NewURL) {

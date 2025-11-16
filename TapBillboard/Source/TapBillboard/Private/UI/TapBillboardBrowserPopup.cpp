@@ -5,13 +5,14 @@
 #include "SWebBrowserView.h"
 #include "TapBillboardCommon.h"
 #include "TapBillboardModule.h"
+#include "PC/TapBillboardPC.h"
 #include "TUSettings.h"
 #include "Components/Button.h"
 #include "Components/NativeWidgetHost.h"
 
 UTapBillboardBrowserPopup* UTapBillboardBrowserPopup::OpenUrl(const FString& Url)
 {
-	if (FTapBillboardPtr Billboard = FTapBillboardModule::GetTapBillboardInterface())
+	if (auto Billboard = StaticCastSharedPtr<FTapBillboardPC>(FTapBillboardModule::GetTapBillboardInterface()))
 	{
 		TSubclassOf<UTapBillboardBrowserPopup> Class = Billboard->GetPopupBrowserClass();
 		check(Class);

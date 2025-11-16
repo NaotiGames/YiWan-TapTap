@@ -1,5 +1,6 @@
 #include "TUHttpRequest.h"
 #include "Http.h"
+#include "TUDeviceInfo.h"
 
 
 TUHttpRequest::TUHttpRequest()
@@ -23,6 +24,7 @@ TMap<FString, FString> TUHttpRequest::CommonHeaders()
 	{
 		CommonHeaders.Add("Content-Type", "application/json");
 	}
+	CommonHeaders.Add("User-Agent",  FString::Printf(TEXT("TapSDK_UE/%s/%s"), TapCommon_UE_VERSION, *TUDeviceInfo::GetPlatform()));
 	return CommonHeaders;
 }
 

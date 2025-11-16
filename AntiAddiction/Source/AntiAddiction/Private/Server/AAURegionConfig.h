@@ -4,7 +4,6 @@ class AAURegionConfig {
 public:
 	virtual ~AAURegionConfig() = default;
 	virtual FString BaseHost() = 0;
-	virtual FString GetRSAPublicKey();
 
 	FString RealNameUrl();
 	FString AntiAddictionUrl();

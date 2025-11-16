@@ -25,5 +25,12 @@ public:
 	static TSharedPtr<FJsonObject> Convert(NSDictionary *dic);
 
 	static NSDictionary * Convert(TSharedPtr<FJsonObject> JsonObject);
-	
+
+	static NSData * Convert(const TArray<uint8>& DataBuffer);
+
+	static TArray<uint8> Convert(NSData * data);
+
+	static UIColor * Convert(const FColor& Color);
+
+	static FColor Convert(UIColor *color);
 };

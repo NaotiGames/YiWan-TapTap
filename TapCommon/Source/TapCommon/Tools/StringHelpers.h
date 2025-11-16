@@ -5,6 +5,45 @@
 
 inline void LexFromStringHex(int32& OutValue, const TCHAR* Buffer) { OutValue = FCString::Strtoi(Buffer, nullptr, 16); }
 
+inline FColor HexToColor(const FString& HexString, bool bContainA = false)
+{
+	int HexLength = bContainA ? 8 : 6;
+	if (HexString.Len() < HexLength)
+	{
+		// 如果输入的十六进制字符串长度不足，返回默认的白色
+		return FColor::White;
+	}
+	FString ResultHexString = HexString;
+	if (ResultHexString.Len() > 8)
+	{
+		ResultHexString.RightInline(8);
+	}
+
+	int32 R, G, B, A = 0;
+	R = FParse::HexNumber(*ResultHexString.Mid(0, 2));
+	G = FParse::HexNumber(*ResultHexString.Mid(2, 2));
+	B = FParse::HexNumber(*ResultHexString.Mid(4, 2));
+	if (bContainA) {
+		A = FParse::HexNumber(*ResultHexString.Mid(6, 2));
+	}
+
+	if (bContainA) {
+		return FColor(R, G, B, A);
+	} else {
+		return FColor(R, G, B);
+	}
+}
+
+// 将FLinearColor转换为十六进制颜色字符串
+inline FString ColorToHex(const FColor& Color, bool bContainA = false)
+{
+	if (bContainA) {
+		return FString::Printf(TEXT("%02X%02X%02X%02X"), Color.R, Color.G, Color.B, Color.A);
+	} else {
+		return FString::Printf(TEXT("%02X%02X%02X"), Color.R, Color.G, Color.B);
+	}
+}
+
 namespace TUCommon
 {
 

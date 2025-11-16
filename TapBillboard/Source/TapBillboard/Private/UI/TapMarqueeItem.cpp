@@ -5,27 +5,18 @@
 
 #include "TapBillboardCommon.h"
 #include "TapBillboardModule.h"
+#include "TapUrlResourceLoader.h"
 #include "Animation/UMGSequencePlayer.h"
 #include "Components/BorderSlot.h"
 #include "Components/Image.h"
 #include "Components/PanelWidget.h"
 #include "Components/TextBlock.h"
+#include "PC/TapBillboardPC.h"
 #include "Engine/Font.h"
+#include "Engine/FontFace.h"
 
-void UTapMarqueeItem::UpdateItem(const FText& Content, UTexture2DDynamic* InIconTexture, float InStartupOffset, int64 Id, bool bMarkReadWhenFinished)
+void UTapMarqueeItem::UpdateItem(const FText& Content, float InStartupOffset, int64 Id, bool bMarkReadWhenFinished)
 {
-	if (InIconTexture)
-	{
-		Icon->SetBrushFromTextureDynamic(InIconTexture, true);		
-	}
-	else
-	{
-		Icon->SetVisibility(ESlateVisibility::Hidden);
-		if (UWorld* World = GetWorld())
-		{
-			World->GetTimerManager().SetTimer(FindIconTimer, this, &UTapMarqueeItem::TimerFindIcon, 0.5f, true);
-		}
-	}
 	ContentLabel->SetText(Content);
 	MarkReadID = Id;
 	bMarkRead = bMarkReadWhenFinished;
@@ -35,7 +26,7 @@ void UTapMarqueeItem::UpdateStyle(const FAnnouncementStyleData& StyleData)
 {
 	FColor TextColor = FColor::FromHex(StyleData.default_text_color);
 	ContentLabel->SetColorAndOpacity(FSlateColor(TextColor));
-	
+	FTapUrlResourceLoader::LoadImageTexture(StyleData.icon.url, nullptr, FTapUrlResourceLoaderTextureDelegate::CreateUObject(this, &UTapMarqueeItem::UpdateIconTexture));
 	FVector2D ViewportSize;
 	GEngine->GameViewport->GetViewportSize(ViewportSize);
 	const FAnnouncementLayout& Layout = ViewportSize.X > ViewportSize.Y ? StyleData.horizontal : StyleData.vertical;
@@ -43,6 +34,24 @@ void UTapMarqueeItem::UpdateStyle(const FAnnouncementStyleData& StyleData)
 	{
 		BorderSlot->SetPadding(FMargin(Layout.scroll_margin_x, Layout.scroll_margin_y));
 	}
+}
+
+void UTapMarqueeItem::UpdateIconTexture(UTexture2D* Texture) {
+	Icon->SetBrushFromTexture(Texture, true);		
+}
+
+void UTapMarqueeItem::UpdateFont(UFont* Font) {
+	if (Font == nullptr) {
+		return;
+	}
+	FSlateFontInfo Info;
+#if ENGINE_MAJOR_VERSION > 4
+	Info = ContentLabel->GetFont();
+#else
+	Info = ContentLabel->Font;
+#endif
+	Info.FontObject = Font;
+	ContentLabel->SetFont(Info);
 }
 
 void UTapMarqueeItem::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -53,15 +62,11 @@ void UTapMarqueeItem::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		FSlateRect ParentRect = Widget->GetCachedGeometry().GetRenderBoundingRect();
 		float SelfRight = MyGeometry.GetRenderBoundingRect().Right;
 
-		if (SelfRight < ParentRect.Right)
-		{
-			OnRightSideDisplay.ExecuteIfBound(this);
-		}
 		if (SelfRight < ParentRect.Left)
 		{
 			if (bMarkRead)
 			{
-				if (FTapBillboardPtr Interface = FTapBillboardModule::GetTapBillboardInterface())
+	if (auto Interface = StaticCastSharedPtr<FTapBillboardPC>(FTapBillboardModule::GetTapBillboardInterface()))
 				{
 					Interface->Rest_AnnouncementsMarkRead({MarkReadID}, FSimpleDelegate(), FTapFailed());
 					Interface->PopMarqueeData(MarkReadID);
@@ -75,32 +80,5 @@ void UTapMarqueeItem::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 void UTapMarqueeItem::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
-	if (FTapBillboardPtr Interface = FTapBillboardModule::GetTapBillboardInterface())
-	{
-		if (const UFont* Font = Interface->GetDownloadFont())
-		{
-			ContentLabel->Font.FontObject = Font;
-			ContentLabel->SetFont(ContentLabel->Font);
-		}
-	}
-#if PLATFORM_IOS || PLATFORM_ANDROID
-	ContentLabel->Font.Size = 16.f;
-#endif
-}
-
-void UTapMarqueeItem::TimerFindIcon()
-{
-	if (FTapBillboardPtr Billboard = FTapBillboardModule::GetTapBillboardInterface())
-	{
-		if (UTexture2DDynamic* Tex = Billboard->GetMarqueeIconTexture())
-		{
-			Icon->SetBrushFromTextureDynamic(Tex);
-			if (UWorld* World = GetWorld())
-			{
-				World->GetTimerManager().ClearTimer(FindIconTimer);
-				FindIconTimer.Invalidate();
-			}
-		}
-	}
 }
 

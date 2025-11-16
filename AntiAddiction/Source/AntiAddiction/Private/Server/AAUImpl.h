@@ -1,22 +1,21 @@
 #pragma once
 #include "AAUType.h"
 
-class AAUImpl {
+class AAUImpl : public TSharedFromThis<AAUImpl>{
 public:
 	virtual ~AAUImpl() = default;
 	static TSharedPtr<AAUImpl>& Get();
 
 	static FAAUConfig Config;
-
-	static FString LocalTokenString;
-
-	bool IsNeedStandAlone(TFunction<void(bool IsNeed)> CallBack = nullptr);
-
+	static bool bTestEnvEnable;
+	
 	void Init(const FAAUConfig& _Config);
+
+	virtual void SetTestEnv(bool Enable);
 
 	virtual void InitImpl(const FAAUConfig& _Config);
 
-	virtual void Startup(const FString& UserID);
+	virtual void StartupWithTapTap(const FString& UserId);
 
 	virtual void Exit();
 

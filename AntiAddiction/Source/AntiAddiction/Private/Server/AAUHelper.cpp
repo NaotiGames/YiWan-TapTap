@@ -3,6 +3,7 @@
 #include "AAUNet.h"
 #include "TUCrypto.h"
 #include "TUDebuger.h"
+#include "Model/China/AAUserConfigModel.h"
 
 bool AAUHelper::ValidateCardID(const FString& CardID) {
 
@@ -35,30 +36,12 @@ bool AAUHelper::ValidateCardID(const FString& CardID) {
 	return validate[mode] == CardIDData[17];
 }
 
-int AAUHelper::GetAge(const FString& CardID) {
-	
-	int32 BirthYear = FCString::Atoi(*CardID.Mid(6, 4));
-	int32 BirthMonth = FCString::Atoi(*CardID.Mid(10, 2));
-	int32 BirthDay = FCString::Atoi(*CardID.Mid(12, 2));
-
-	FDateTime DateTime = FDateTime::Now();
-	int32 CurrentYear = DateTime.GetYear();
-	int32 CurrentMonth = DateTime.GetMonth();
-	int32 CurrentDay = DateTime.GetDay();
-
-	int Age = CurrentYear - BirthYear;
-	//如果当前日月<出生日月
-	if ((BirthMonth > CurrentMonth) || (BirthMonth == CurrentMonth && BirthDay > CurrentDay)){
-		Age -= 1;
-	}
-	return Age;
-}
 
 void AAUHelper::GetTimeSpanWithSeverTime(TFunction<void(int64 TimeSpan)> CallBack) {
 	if (CallBack == nullptr) {
 		return;
 	}
-	AAUNet::GetServerTime([=](TSharedPtr<FAAUServerTimeModel> ModelPtr, const FTUError& Error) {
+	AAUNet::GetServerTime([=](TSharedPtr<FAAUServerTimeModel> ModelPtr, const FAntiAddictionError& Error) {
 		int64 LocalTimestamp = FDateTime::UtcNow().ToUnixTimestamp();
 		if (ModelPtr.IsValid() && ModelPtr->timestamp > 0 &&
 			FMath::Abs(ModelPtr->timestamp - LocalTimestamp) > 60) {
@@ -75,11 +58,6 @@ FDateTime AAUHelper::GetChinaCurrentTime() {
 	return Time;
 }
 
-FDateTime AAUHelper::GetVietnamCurrentTime() {
-	auto Time = FDateTime::UtcNow();
-	Time += 7 * ETimespan::TicksPerHour; // 东七区
-	return Time;
-}
 
 TArray<int> AAUHelper::ParseCurfewTimeString(const FString& ServerTime) {
 	TArray<FString> OutArray;
@@ -92,42 +70,29 @@ TArray<int> AAUHelper::ParseCurfewTimeString(const FString& ServerTime) {
 }
 
 int64 AAUHelper::IntervalForCurfew(FDateTime ChinaTime) {
-	// 如果配置出错了，是能一直玩还是不能玩
 	int64 RetainSeconds = INT64_MAX;
-	// int64 RetainSeconds = 0;
 	int64 NowMins = ChinaTime.GetHour() * 60 + ChinaTime.GetMinute();
-	auto ConfigModel = FAAUChinaConfigModel::GetLocalModel();
-	auto Start = ParseCurfewTimeString(ConfigModel->child_protected_config.night_strict_start);
+	auto ConfigModel = FAAUserConfigModel::CurrentModel.Get()->local.time_range;
+	auto Start = ParseCurfewTimeString(ConfigModel.time_start);
 	if (Start.Num() != 2) {
 		return RetainSeconds;
 	}
 	int64 StartMins = Start[0] * 60 + Start[1];
-	auto End = ParseCurfewTimeString(ConfigModel->child_protected_config.night_strict_end);
+	auto End = ParseCurfewTimeString(ConfigModel.time_end);
 	if (End.Num() != 2) {
 		return RetainSeconds;
 	}
 	int64 EndMins = End[0] * 60 + End[1];
-	// TUDebuger::DisplayLog(FString::Printf(TEXT("niu: %lld-%lld-%lld-%d"), NowMins, StartMins, EndMins, ChinaTime.GetSecond()));
-	if (StartMins > EndMins) {
-		if (NowMins >= EndMins && NowMins < StartMins) {
-			return (StartMins - NowMins) * 60 - ChinaTime.GetSecond();
-		} else {
-			return 0;
-		}
-	} else if (StartMins < EndMins) {
-		if (NowMins >= StartMins && NowMins < EndMins) {
-			return 0;
-		} else {
-			return (StartMins - NowMins) * 60 - ChinaTime.GetSecond();
-		}
+	if (NowMins >= StartMins && NowMins < EndMins) {
+		return EndMins - NowMins;
 	} else {
-		return RetainSeconds;
+		return 0;
 	}
 }
 
 bool AAUHelper::IsHoliday(FDateTime ChinaTime) {
-	FString TodayStr = FString::Printf(TEXT("%02i.%02i"), ChinaTime.GetMonth(), ChinaTime.GetDay());
-	for (auto Holiday : FAAUChinaConfigModel::GetLocalModel()->holiday) {
+	FString TodayStr = FString::Printf(TEXT("%i-%02i-%02i"), ChinaTime.GetYear(),ChinaTime.GetMonth(), ChinaTime.GetDay());
+	for (auto Holiday : FAAUserConfigModel::GetLocalModel()->local.time_range.holidays) {
 		if (TodayStr == Holiday) {
 			return true;
 		}

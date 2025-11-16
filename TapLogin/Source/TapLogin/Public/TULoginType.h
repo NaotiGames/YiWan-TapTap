@@ -15,5 +15,4 @@ struct FTULoginConfig
 
 	UPROPERTY(EditAnywhere,	BlueprintReadWrite)
 	bool bRoundCorner = true;
-
 };

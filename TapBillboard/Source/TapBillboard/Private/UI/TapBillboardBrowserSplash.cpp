@@ -11,13 +11,15 @@
 #include "Components/NativeWidgetHost.h"
 #include "IWebBrowserWindow.h"
 #include "TapBillboardBrowserPopup.h"
+#include "TapBillboardModels.h"
 #include "TUSettings.h"
 #include "Components/SizeBox.h"
 
-void UTapBillboardBrowserSplash::LoadUrl(const FString& Url)
+void UTapBillboardBrowserSplash::LoadUrl(FString Url)
 {
 	BrowserView->LoadURL(Url);
-	State = EBillboardBrowserState::Loading;
+	WebTipUI->ShowWait();
+	WebTipUI->OnRefreshClick.BindUObject(this, &UTapBillboardBrowserSplash::LoadUrl, Url);
 }
 
 void UTapBillboardBrowserSplash::SetExpireTime(int64 Time)
@@ -45,7 +47,7 @@ void UTapBillboardBrowserSplash::SetExpireTime(int64 Time)
 
 void UTapBillboardBrowserSplash::LoadSplash()
 {
-	if (const FTapBillboardPtr Billboard = FTapBillboardModule::GetTapBillboardInterface())
+	if (auto Billboard = StaticCastSharedPtr<FTapBillboardPC>(FTapBillboardModule::GetTapBillboardInterface()))
 	{
 		Billboard->Rest_FetchUnreadAnnouncementsGeneralData(ETapBillboardTemplate::Splash,
 			FAnnouncementGeneralDataResult::CreateUObject(this, &UTapBillboardBrowserSplash::InternalFetchUnreadSplashCallback),
@@ -55,20 +57,11 @@ void UTapBillboardBrowserSplash::LoadSplash()
 
 void UTapBillboardBrowserSplash::LoadSplashWithID(int64 SplashID)
 {
-	if (const FTapBillboardPtr Billboard = FTapBillboardModule::GetTapBillboardInterface())
+	if (auto Billboard = StaticCastSharedPtr<FTapBillboardPC>(FTapBillboardModule::GetTapBillboardInterface()))
 	{
 		const FString Url = Billboard->GenerateSplashUrl(FTUConfig::Get()->BillboardConfig->Dimensions, SplashID);
 		LoadUrl(Url);
 	}
-}
-
-void UTapBillboardBrowserSplash::RemoveFromParent()
-{
-	if (FTapBillboardPtr Billboard = FTapBillboardModule::GetTapBillboardInterface())
-	{
-		Billboard->Rest_SendTraceEvent(ETapBillboardTemplate::Splash, {{TEXT("action"), TEXT("click")}, {TEXT("type"), TEXT("close")}});
-	}
-	Super::RemoveFromParent();
 }
 
 void UTapBillboardBrowserSplash::NativeOnInitialized()
@@ -96,8 +89,8 @@ void UTapBillboardBrowserSplash::NativeOnInitialized()
 	}
 
 #if PLATFORM_WINDOWS || PLATFORM_MAC
-	SizeBox->SetWidthOverride(1000.f);
-	SizeBox->SetHeightOverride(600.f);
+	SizeBox->SetWidthOverride(1504.f);
+	SizeBox->SetHeightOverride(864.f);
 #else
 	SizeBox->SetWidthOverride(1464.f);
 	SizeBox->SetHeightOverride(1208.f);
@@ -172,12 +165,7 @@ bool UTapBillboardBrowserSplash::OnBeforeNavigate(const FString& Url, const FWeb
 
 void UTapBillboardBrowserSplash::OnLoadCompleted()
 {
-	if (GetState() == EBillboardBrowserState::Loaded || GetState() == EBillboardBrowserState::LoadFailed)
-	{
-		return;
-	}
 	TWeakObjectPtr<UTapBillboardBrowserSplash> WeakThis(this);
-	State = EBillboardBrowserState::Loaded;
 	AsyncTask(ENamedThreads::GameThread, [WeakThis]()
 	{
 		if(WeakThis.IsValid())
@@ -185,22 +173,18 @@ void UTapBillboardBrowserSplash::OnLoadCompleted()
 			WeakThis->OnLoadComplete.ExecuteIfBound();
 			WeakThis->OnLoadComplete.Unbind();
 			WeakThis->OnLoadFailed.Unbind();
-			if (WeakThis->bDisplayWhenRead)
-			{
-				WeakThis->AddToViewport(TUSettings::GetUILevel());
-			}
+			WeakThis->WebTipUI->ShowLoadSuccess();
+			// if (WeakThis->bDisplayWhenRead)
+			// {
+			// 	WeakThis->AddToViewport(TUSettings::GetUILevel());
+			// }
 		}
 	});
 }
 
 void UTapBillboardBrowserSplash::OnLoadError()
 {
-	if (GetState() == EBillboardBrowserState::Loaded || GetState() == EBillboardBrowserState::LoadFailed)
-	{
-		return;
-	}
 	TWeakObjectPtr<UTapBillboardBrowserSplash> WeakThis(this);
-	State = EBillboardBrowserState::LoadFailed;
 	AsyncTask(ENamedThreads::GameThread, [WeakThis]()
 	{
 		if(WeakThis.IsValid())
@@ -208,6 +192,7 @@ void UTapBillboardBrowserSplash::OnLoadError()
 			WeakThis->OnLoadFailed.ExecuteIfBound(FTUError(-1, TEXT("Net error.")));
 			WeakThis->OnLoadComplete.Unbind();
 			WeakThis->OnLoadFailed.Unbind();
+			WeakThis->WebTipUI->ShowLoadFail();
 		}
 	});
 }
@@ -227,6 +212,7 @@ void UTapBillboardBrowserSplash::InternalFetchUnreadSplashCallback(const TArray<
 	{
 		LoadSplashWithID(GeneralData[0].id);
 		SetExpireTime(GeneralData[0].expire_time);
+		AddToViewport(TUSettings::GetUILevel());
 	}
 	else
 	{

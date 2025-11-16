@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "TapBillboardTypes.h"
+#include "TapBillboardModels.h"
 #include "JsonWrapper.generated.h"
 
 USTRUCT()

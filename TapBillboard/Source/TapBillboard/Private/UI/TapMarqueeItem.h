@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Engine/Font.h"
+#include "Engine/FontFace.h"
 #include "TapMarqueeItem.generated.h"
 
 class UImage;
@@ -18,23 +20,24 @@ class TAPBILLBOARD_API UTapMarqueeItem : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	void UpdateItem(const FText& Content, UTexture2DDynamic* InIconTexture, float InStartupOffset, int64 Id, bool bMarkReadWhenFinished = false);
+	void UpdateItem(const FText& Content, float InStartupOffset, int64 Id, bool bMarkReadWhenFinished = false);
 	
 	void UpdateStyle(const FAnnouncementStyleData& StyleData);
-	
-	FMarqueeCallback OnRightSideDisplay;
 
+	// void UpdateFont(const FAnnouncementStyleData& StyleData);
+	
 	FMarqueeCallback OutsideOfParent;
 
 	UPROPERTY()
 	int64 MarkReadID = NULL_ID;
+
+	void UpdateIconTexture(UTexture2D *Texture);
+	void UpdateFont(UFont *Font);
 	
 protected:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 	virtual void NativeOnInitialized() override;
-
-	void TimerFindIcon();
 	
 	UPROPERTY(Meta = (BindWidget))
 	UWidget* MarginWidget;
@@ -49,4 +52,5 @@ protected:
 
 	UPROPERTY()
 	bool bMarkRead;
+
 };

@@ -3,8 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "TapBillboardModels.h"
+#include "PC/TapBillboardPC.h"
+#include "TapBillboardWebTipUI.h"
 #include "Blueprint/UserWidget.h"
-#include "TapBillboardTypes.h"
 #include "TapBillboardBrowserSplash.generated.h"
 
 struct FWebNavigationRequest;
@@ -24,17 +26,7 @@ public:
 	FTapFailed OnLoadFailed;
 	FSimpleDelegate OnBillboardBrowserClosed;
 
-	void LoadUrl(const FString& Url);
-
-	FORCEINLINE EBillboardBrowserState GetState() const
-	{
-		return State;
-	}
-
-	FORCEINLINE void SetDisplayWhenReady(bool bDisplay)
-	{
-		bDisplayWhenRead = bDisplay;
-	}
+	void LoadUrl(FString Url);
 
 	void SetExpireTime(int64 Time);
 
@@ -42,8 +34,6 @@ public:
 
 	void LoadSplashWithID(int64 SplashID);
 	
-	virtual void RemoveFromParent() override;
-
 protected:
 	virtual void NativeOnInitialized() override;
 
@@ -66,11 +56,8 @@ protected:
 	UPROPERTY(Meta = (BindWidget))
 	USizeBox* SizeBox;
 
-	UPROPERTY()
-	EBillboardBrowserState State = EBillboardBrowserState::NotLoad;
-
-	UPROPERTY()
-	bool bDisplayWhenRead;
+	UPROPERTY(Meta = (BindWidget))
+	UTapBillboardWebTipUI* WebTipUI;
 
 	FTimerHandle ExpireRemoveTimer;
 	

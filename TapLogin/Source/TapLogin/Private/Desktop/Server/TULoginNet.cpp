@@ -8,6 +8,7 @@
 #include "URLParser.h"
 #include "TULoginImpl.h"
 
+FString TULoginNet::LastProfileSeverTimestamp = "";
 TULoginNet::TULoginNet()
 {
 }
@@ -59,6 +60,7 @@ void PerfromWrapperResponseCallBack(const TSharedPtr<TUHttpResponse>& Response, 
 			if (Model.IsValid())
 			{
 				Error = *Model.Get();
+				JsonObject->TryGetNumberField("now", Error.now);
 			}
 		}
 	}
@@ -111,8 +113,27 @@ void TULoginNet::RequestProfile(const FTUAccessToken& AccessToken,
 	request->URL = TULoginRegionConfig::Get()->ProfileUrl();
 	request->Parameters->SetStringField("client_id", TULoginImpl::Get()->Config.ClientID);
 	request->AccessToken = MakeShareable(new FTUAccessToken(AccessToken));
+	TFunction<void(TSharedPtr<FTULoginProfileModel> Model, FTULoginError Error)> tempCallback = [=](TSharedPtr<FTULoginProfileModel> MODEL, FTULoginError Error)
+	{
+			if (MODEL.IsValid())
+			{
+				LastProfileSeverTimestamp = "";
+				callback(MODEL,Error);
+			} else
+			{
+				if (Error.error == "invalid_time")
+				{
+					LastProfileSeverTimestamp = FString::Printf(TEXT("%d"), Error.now);
+					RequestProfile(AccessToken, callback);
+				} else
+				{
+					LastProfileSeverTimestamp = "";
+					callback(MODEL,Error);
+				}
+			}
+	};
 	request->onCompleted.BindLambda([=](TSharedPtr<TUHttpResponse> response) {
-		PerfromWrapperResponseCallBack(response, callback);
+		PerfromWrapperResponseCallBack(response, tempCallback);
 	});
 	TUHttpManager::Get().request(request);
 }
@@ -129,15 +150,34 @@ void TULoginNet::RequestAccessTokenFromWeb(const TSharedPtr<FJsonObject>& Paras,
 	TUHttpManager::Get().request(request);
 }
 
-void TULoginNet::RequestTestQualification(
-	TFunction<void(TSharedPtr<FTUTestQualificationModel> Model, FTULoginError Error)> Callback) {
+
+void TULoginNet::RequestRealNameCode(const FTUAccessToken& AccessToken,
+	TFunction<void(TSharedPtr<FTUAntiAddictionModel> Model, FTULoginError Error)> Callback) {
 	const TSharedPtr<TULoginNet> request = MakeShareable(new TULoginNet());
 	request->Type = Get;
-	request->URL = TULoginRegionConfig::Get()->TestQualificationUrl();
+	request->URL = TULoginRegionConfig::Get()->AntiAddictionUrl();
 	request->Parameters->SetStringField("client_id", TULoginImpl::Get()->Config.ClientID);
-	request->AccessToken = FTUAccessToken::GetLocalModel();
+	request->AccessToken = MakeShared<FTUAccessToken>(AccessToken);
 	request->onCompleted.BindLambda([=](TSharedPtr<TUHttpResponse> response) {
 		PerfromWrapperResponseCallBack(response, Callback);
+	});
+	TUHttpManager::Get().request(request);
+}
+
+void TULoginNet::RefreshToken(const FString& AccessToken, TFunction<void(TSharedPtr<FTUAccessToken> Model, FTULoginError Error)> callback){
+	const TSharedPtr<TUHttpRequest> request = MakeShareable(new TULoginNet());
+	request->Type = Post;
+	request->URL = TULoginRegionConfig::Get()->TokenUrl();
+	request->Parameters->SetStringField("grant_type", "refresh_token");
+	request->Parameters->SetStringField("client_id", TULoginImpl::Get()->Config.ClientID);
+	request->Parameters->SetStringField("token", AccessToken);
+	request->Parameters->SetStringField("token_type_hint", "access_token");
+	request->Parameters->SetStringField("version", "1.0");
+	request->Parameters->SetStringField("platform", "ue");
+	request->Parameters->SetStringField("info", FString::Printf(TEXT("{\"device_id\":\"%s\"}"), *TUDeviceInfo::GetLoginId()));
+
+	request->onCompleted.BindLambda([=](TSharedPtr<TUHttpResponse> response) {
+		PerfromWrapperResponseCallBack(response, callback);
 	});
 	TUHttpManager::Get().request(request);
 }
@@ -176,6 +216,10 @@ FString TULoginNet::GetMacToken()
 	auto Parse = TUCommon::FURL_RFC3986();
 	Parse.Parse(this->GetFinalUrl());
 	FString timeStr = FString::Printf(TEXT("%lld"), FDateTime::UtcNow().ToUnixTimestamp());
+	if (!LastProfileSeverTimestamp.IsEmpty())
+	{
+		timeStr = LastProfileSeverTimestamp;
+	}
 	FString nonce = TUHelper::GetRandomStr(5);
 	// TUDebuger::DisplayLog(FString::Printf(TEXT("random: %s"), *nonce));
 	FString md = this->Type == Get ? "GET" : "POST";

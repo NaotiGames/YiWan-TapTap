@@ -3,15 +3,13 @@
 #pragma once
 
 #include "Modules/ModuleManager.h"
-
-#define AntiAddictionUE_VERSION_NUMBER "31801001"
-#define AntiAddictionUE_VERSION "3.18.1"
+#include "Slate/SlateGameResources.h"
 
 class FAntiAddictionModule : public IModuleInterface
 {
 public:
-
-	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
+	
+	TSharedPtr<FSlateStyleSet> Style;
 };

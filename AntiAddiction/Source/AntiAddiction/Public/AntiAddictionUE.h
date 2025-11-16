@@ -10,6 +10,8 @@ public:
 		PeriodRestrict   = 1030,	// 达到宵禁时长
 		RealNameStop     = 9002,	// 实名过程中点击了关闭实名窗
 		SwitchAccount    = 1001,	// 切换账号
+		AgeRestrict		 = 1100,	// 年龄限制
+		InvalidClientOrNetworkError = 1200 //客户端参数配置错误或网络异常
 	};
 
 	DECLARE_DELEGATE_TwoParams( FCallBack, ResultHandlerCode , const FString& );
@@ -17,19 +19,26 @@ public:
 	// 回调
 	static FCallBack OnCallBack;
 
+	static void SetTestEnvironment(bool Enable);
+
 	// 防沉迷初始化
 	static void Init(const FAAUConfig& Config);
 
 	// 启动防沉迷
-	static void Startup(const FString& UserID);
+	// bIsTapUser参数弃用
+	UE_DEPRECATED(4.0, "Startup is deprecated, please use StartupWithTapTap")
+	static void Startup(const FString& UserID, bool bIsTapUser = false);
+
+	// 启动防沉迷TapTap快速认证
+	static void StartupWithTapTap(const FString& UserID);
 
 	// 防沉迷退出
 	static void Exit();
 
-	// 进入游戏，游戏从后台激活时调用该API
+	UE_DEPRECATED(4.0, "EnterGame is deprecated, SDK will invoke automatically")
 	static void EnterGame();
 
-	// 离开游戏，游戏进入后台时调用
+	UE_DEPRECATED(4.0, "LeaveGame is deprecated, SDK will invoke automatically")
 	static void LeaveGame();
 
 	// 获取年龄段；
@@ -57,8 +66,7 @@ public:
 
 	// 获取防沉迷Token
 	static FString CurrentToken();
-
-	static void Test();
+	
 	
 };
 

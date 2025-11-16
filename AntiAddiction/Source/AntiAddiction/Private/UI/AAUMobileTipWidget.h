@@ -7,6 +7,9 @@
 #include "Components/SizeBox.h"
 #include "AAUMobileTipWidget.generated.h"
 
+class UTapButton;
+class UNativeWidgetHost;
+class STapControllerTip;
 /**
  *  
  */
@@ -14,10 +17,7 @@ UCLASS()
 class ANTIADDICTION_API UAAUMobileTipWidget : public UUserWidget
 {
 	GENERATED_BODY()
-
 public:
-	UAAUMobileTipWidget(const FObjectInitializer& ObjectInitializer);
-
 	static UAAUMobileTipWidget* ShowUI();
 
 	void SetContent(const FString& Title, const FString& Content, const FString& ComfirmStr);
@@ -25,11 +25,21 @@ public:
 	TFunction<void()> ComformBlock;
 	
 protected:
-
+	virtual void NativeOnInitialized() override;
+	
 	virtual void NativeConstruct() override;
 
+	virtual void NativeDestruct() override;
+
+	virtual FNavigationReply NativeOnNavigation(const FGeometry& MyGeometry, const FNavigationEvent& InNavigationEvent, const FNavigationReply& InDefaultReply) override;
+	
 	UFUNCTION()
 	void OnSubmitBtnClick();
+
+	TSharedPtr<STapControllerTip> ControllerTip;
+
+	UPROPERTY(Meta = (BindWidget))
+	UNativeWidgetHost* ControllerTipHost;
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* TitleLabel;
@@ -44,7 +54,7 @@ protected:
 	UTextBlock* SubButtonLabel;
 
 	UPROPERTY(meta = (BindWidget))
-	UButton* SubmitBtn;
+	UTapButton* SubmitBtn;
 
 private:
 

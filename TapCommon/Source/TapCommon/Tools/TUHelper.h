@@ -44,11 +44,9 @@ public:
 			TUDebuger::ErrorLog("InvokeFunction FunctionName:" + FunctionName + " is Empty");
 			return Value;
 		}
-#if ENGINE_MAJOR_VERSION > 4
-		UClass* ResultClass = FindObject<UClass>(nullptr, *ClassName);
-#else
+		
 		UClass* ResultClass = FindObject<UClass>(ANY_PACKAGE, *ClassName);
-#endif
+
 		if (ResultClass)
 		{
 			UFunction* Function = ResultClass->FindFunctionByName(FName(*FunctionName));
@@ -84,11 +82,9 @@ public:
 			TUDebuger::ErrorLog("InvokeFunction FunctionName:" + FunctionName + " is Empty");
 			return;
 		}
-#if ENGINE_MAJOR_VERSION > 4
-		UClass* ResultClass = FindObject<UClass>(nullptr, *ClassName);
-#else
+		
 		UClass* ResultClass = FindObject<UClass>(ANY_PACKAGE, *ClassName);
-#endif
+
 		if (ResultClass)
 		{
 			UFunction* Function = ResultClass->FindFunctionByName(FName(*FunctionName));
@@ -103,6 +99,8 @@ public:
 	}
 
 	static FString CombinParameters(const TSharedPtr<FJsonObject>& parameters, bool isEncode = true);
+
+	static FString GetLCSign(const FString& ClientToken);
 
 #if PLATFORM_MAC || PLATFORM_WINDOWS
 	

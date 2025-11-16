@@ -61,13 +61,14 @@ void TapUELogin::Logout() {
 	// }
 	TULoginImpl::Get()->Logout();
 }
-	
-void TapUELogin::GetTestQualification(TFunction<void(bool IsQualified, const FTUError& Error)> CallBack) {
-	// if (!IsInitialized) {
-	// 	TUDebuger::WarningShow(FString::Printf(TEXT("Please Init First Before Call %s"), ANSI_TO_TCHAR(__FUNCTION__)));
-	// 	return;
-	// }
-	TULoginImpl::Get()->GetTestQualification(CallBack);
+
+void TapUELogin::GetAntiAddictionCode(const FTUAccessToken& Token,
+	TFunction<void(TSharedPtr<FString> codePtr, const FTUError& Error)> CallBack) {
+	TULoginImpl::Get()->GetAntiAddictionCode(Token, CallBack);
+}
+
+void TapUELogin::AppendPermission(const FString& Permission) {
+	TULoginImpl::Get()->AppendPermission(Permission);
 }
 
 // void TapUELogin::QueryMutualList(FString Cursor, int Size,

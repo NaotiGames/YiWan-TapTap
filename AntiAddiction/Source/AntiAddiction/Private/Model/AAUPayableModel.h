@@ -9,16 +9,14 @@ struct FAAUPayableModel
 	GENERATED_BODY()
 	
 	UPROPERTY()
-	bool status = false; 
+	bool allow = false; 
 	
 	UPROPERTY()
 	FString title; 
 
 	UPROPERTY()
-	FString description;
-
-	UPROPERTY()
-	FString message;
+	FString description_plain;
+	
 	
 };
 

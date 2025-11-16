@@ -7,6 +7,10 @@ class TULoginRegionConfigCN: public TULoginRegionConfig
 {
 public:
 	virtual FString WebHost() {
+		return TUDebuger::GetReplacedHost("https://accounts.taptap.cn");
+	}
+
+	virtual FString TokenHost() {
 		return TUDebuger::GetReplacedHost("https://accounts.tapapis.cn");
 	}
 	
@@ -20,6 +24,10 @@ class TULoginRegionConfigIO: public TULoginRegionConfig
 {
 public:
 	virtual FString WebHost() {
+		return TUDebuger::GetReplacedHost("https://www.taptapauth.com");
+	}
+
+	virtual FString TokenHost() {
 		return TUDebuger::GetReplacedHost("https://accounts.tapapis.com");
 	}
 	
@@ -34,12 +42,12 @@ TSharedPtr<TULoginRegionConfig> TULoginRegionConfig::Instance = nullptr;
 
 FString TULoginRegionConfig::CodeUrl()
 {
-	return WebHost() + "/oauth2/v1/device/code";
+	return TokenHost() + "/oauth2/v1/device/code";
 }
 
 FString TULoginRegionConfig::TokenUrl()
 {
-	return WebHost() + "/oauth2/v1/token";
+	return TokenHost() + "/oauth2/v1/token";
 }
 
 FString TULoginRegionConfig::ProfileUrl()
@@ -49,12 +57,12 @@ FString TULoginRegionConfig::ProfileUrl()
 
 FString TULoginRegionConfig::AccountUrl()
 {
-	return WebHost() + "/oauth2/v1/authorize";
+	return WebHost() + "/authorize";
 }
 
-FString TULoginRegionConfig::TestQualificationUrl()
-{
-	return ApiHost() + "/test/user-status/v1";
+
+FString TULoginRegionConfig::AntiAddictionUrl() {
+	return ApiHost() + "/account/compliance/v1";
 }
 
 TSharedPtr<TULoginRegionConfig>& TULoginRegionConfig::Get() {

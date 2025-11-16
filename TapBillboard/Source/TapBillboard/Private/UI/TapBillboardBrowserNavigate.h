@@ -4,8 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "TapBillboardTypes.h"
-#include "TapBillboardCommon.h"
+#include "TapBillboardModels.h"
+#include "TapBillboardWebTipUI.h"
+#include "PC/TapBillboardPC.h"
 #include "TapBillboardBrowserNavigate.generated.h"
 
 class USizeBox;
@@ -28,17 +29,9 @@ public:
 	FTapFailed OnLoadFailed;
 	FSimpleDelegate OnBillboardBrowserClosed;
 
-	void LoadUrl(const FString& Url);
-	
-	FORCEINLINE EBillboardBrowserState GetState() const
-	{
-		return State;
-	}
+	void LoadUrl(FString Url);
 
-	FORCEINLINE void SetDisplayWhenReady(bool bDisplay)
-	{
-		bDisplayWhenRead = bDisplay;
-	}
+	void Close();
 	
 protected:
 	virtual void NativeOnInitialized() override;
@@ -54,20 +47,17 @@ protected:
 	void OnLoadCompleted();
 
 	void OnLoadError();
-
-	void Close();
-
+	
 	UFUNCTION()
 	void JSNotifyRedDot(const FString& ResultString);
 
 	void UpdateCloseButtonDPIScale(float NewScale);
-
-	void GetBadgeDetailSuccess(const FBadgeDetails& BadgeDetails);
-
-	void OnGetBadgeDetailFailed(const FTUError& Error);
 	
 	UPROPERTY(Meta = (BindWidget))
 	class UNativeWidgetHost* NativeWidget;
+
+	UPROPERTY(Meta = (BindWidget))
+	UTapBillboardWebTipUI* WebTipUI;
 
 	UPROPERTY(Meta = (BindWidget))
 	class UTapPlatformButton* CloseButton;
@@ -77,12 +67,6 @@ protected:
 
 	UPROPERTY(Meta = (BindWidget))
 	USizeBox* SizeBox;
-
-	UPROPERTY()
-	EBillboardBrowserState State = EBillboardBrowserState::NotLoad;
-
-	UPROPERTY()
-	bool bDisplayWhenRead;
 
 	TSharedPtr<class SWebBrowserView> BrowserView;
 };

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- init section is always evaluated once per architecture -->
+    <init>
+        <log text="TapUpdate Android Build init"/>
+    </init>
+
+    <!-- optional additions to proguard -->
+    <proguardAdditions>
+        <insert>
+        </insert>
+    </proguardAdditions>
+
+    <!-- optional files or directories to copy to Intermediate/Android/APK -->
+    <resourceCopies>
+        <copyDir src="$S(PluginDir)/../ThirdParty/Android/libs/" dst="$S(BuildDir)/libs/" />
+        <copyDir src="$S(PluginDir)/Private/Android/Java/" dst="$S(BuildDir)/src/com/tds/" />
+    </resourceCopies>
+
+    <buildGradleAdditions>
+        <insert>
+            dependencies.implementation (name:'TapUpdate_3.29.7', ext:'aar')
+            dependencies.implementation 'com.squareup.okhttp3:okhttp:3.12.1'
+            dependencies.implementation 'androidx.core:core:1.6.0'
+            dependencies.implementation 'com.google.android.flexbox:flexbox:3.0.0'
+        </insert>
+    </buildGradleAdditions>
+</root>

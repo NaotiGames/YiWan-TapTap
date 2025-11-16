@@ -56,17 +56,20 @@ void TULoginImpl::Logout() {
 	UnsupportedPlatformsLog
 }
 
-void TULoginImpl::GetTestQualification(TFunction<void(bool IsQualified, const FTUError& Error)> CallBack) {
+void TULoginImpl::GetAntiAddictionCode(const FTUAccessToken& Token,
+	TFunction<void(TSharedPtr<FString> codePtr, const FTUError& Error)> CallBack) {
 	UnsupportedPlatformsLog
-	// if (CallBack) {
-	// 	CallBack(false, FTUError(FTUError::ERROR_CODE_LOGIN_Platforms_Unsupported, "Unsupported Platforms"));
-	// }
 }
 
 void TULoginImpl::QueryMutualList(FString Cursor, int Size,
-	TFunction<void(TSharedPtr<FTULoginFriendResult> ModelPtr, const FTUError& Error)> CallBack) {
+                                  TFunction<void(TSharedPtr<FTULoginFriendResult> ModelPtr, const FTUError& Error)> CallBack) {
 	UnsupportedPlatformsLog
 	// if (CallBack) {
 	// 	CallBack(nullptr, FTUError(FTUError::ERROR_CODE_LOGIN_Platforms_Unsupported, "Unsupported Platforms"));
 	// }
+}
+
+void TULoginImpl::AppendPermission(const FString& Permission)
+{
+	AdditionalPermissions.AddUnique(Permission);
 }

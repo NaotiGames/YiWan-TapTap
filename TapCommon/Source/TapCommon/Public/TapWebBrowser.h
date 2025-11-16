@@ -3,14 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Blueprint/UserWidget.h"
+#include "TapWidget.h"
 #include "TapWebBrowser.generated.h"
 
+class UTapButton;
 struct FWebNavigationRequest;
 class SWebBrowser;
 class UImage;
 class UTextBlock;
-class UButton;
 class UNativeWidgetHost;
 
 DECLARE_DELEGATE(FOnCloseWebBrowserClicked);
@@ -19,7 +19,7 @@ DECLARE_DELEGATE(FOnCloseWebBrowserClicked);
  * 
  */
 UCLASS()
-class TAPCOMMON_API UTapWebBrowser : public UUserWidget
+class TAPCOMMON_API UTapWebBrowser : public UTapWidget
 {
 	GENERATED_BODY()
 public:
@@ -49,6 +49,8 @@ public:
 protected:
 	virtual void NativeOnInitialized() override;
 
+	virtual void NativeDestruct() override;
+	
 	virtual void OnURLChanged(const FText& NewURL);
 
 	virtual void OnTitleChanged(const FText& NewTitle);
@@ -62,18 +64,21 @@ protected:
 	virtual bool OnBeforeNavigation(const FString& URL, const FWebNavigationRequest& Request);
 
 	virtual bool OnBeforePopup(FString URL,FString FrameName);
+
+	virtual FNavigationReply NativeOnNavigation(const FGeometry& MyGeometry, const FNavigationEvent& InNavigationEvent, const FNavigationReply& InDefaultReply) override;
+
 	
 	UPROPERTY(Meta = (BindWidget))
 	UNativeWidgetHost* WebBrowser;
 
 	UPROPERTY(Meta = (BindWidgetOptional))
-	UButton* BTN_GoBack;
+	UTapButton* BTN_GoBack;
 
 	UPROPERTY(Meta = (BindWidgetOptional))
-	UButton* BTN_Close;
+	UTapButton* BTN_Close;
 	
 	UPROPERTY(Meta = (BindWidgetOptional))
-	UButton* BTN_Retry;
+	UTapButton* BTN_Retry;
 
 	UPROPERTY(Meta = (BindWidgetOptional))
 	UTextBlock* TB_Retry;

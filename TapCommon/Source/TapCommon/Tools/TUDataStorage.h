@@ -2,6 +2,8 @@
 #include "JsonObjectConverter.h"
 #include "TUJsonHelper.h"
 #include "TUCrypto.h"
+#include "TUDeviceInfo.h"
+#include "TUType.h"
 
 template <typename StructName>
 class TUDataStorage {
@@ -91,6 +93,20 @@ public:
 		return value;
 	}
 
+	template <typename StructType>
+	static TSharedPtr<StructType> LoadStructMatch(const FString& Key) {
+		const TSharedPtr<FJsonObject>* jsonObject;
+		if (!GetJsonObject()->TryGetObjectField(Key, jsonObject)) {
+			return nullptr;
+		}
+		TSharedPtr<StructType> value = MakeShareable(new StructType);
+		if (FJsonObjectConverter::JsonObjectToUStruct(jsonObject->ToSharedRef(), value.Get()))
+		{
+			return value;
+		}
+		return nullptr;
+	}
+
 	static void Remove(const FString& Key, bool needSaveLocal = true) {
 		GetJsonObject()->RemoveField(Key);
 		if (needSaveLocal) { SaveToFile(); }
@@ -99,7 +115,7 @@ public:
 	static void SaveToFile() {
 		FString filePath = DataStoragePath();
 		FString jsonStr = TUJsonHelper::GetJsonString(JsonObject);
-		auto data = TUCrypto::AesEncode(TUCrypto::UTF8Encode(jsonStr), TUCrypto::UTF8Encode(DataStorageKey()));
+		auto data = TUCrypto::AesEncode(TUCrypto::UTF8Encode(jsonStr), TUCrypto::UTF8Encode(DataStorageKeyV2()));
 		FFileHelper::SaveArrayToFile(data, *filePath);
 	}
 
@@ -109,13 +125,47 @@ private:
 			FString filePath = DataStoragePath();
 			TArray<uint8> data;
 			if (FFileHelper::LoadFileToArray(data, *filePath)) {
-				auto JsonStr = TUCrypto::UTF8Encode(TUCrypto::AesDecode(data, TUCrypto::UTF8Encode(DataStorageKey())));
+				auto JsonStr = TUCrypto::UTF8Encode(TUCrypto::AesDecode(data, TUCrypto::UTF8Encode(DataStorageKeyV2())));
 				JsonObject = TUJsonHelper::GetJsonObject(JsonStr);
-				// UE_LOG(LogTemp, Display, TEXT("JsonStr: %s"), *JsonStr);
+				if (JsonObject == nullptr)
+				{
+					UE_LOG(LogTap, Log, TEXT("TUDataStorage Load V2 failed. try load V1. FilePath: %s"), *filePath);
+					JsonStr = TUCrypto::UTF8Encode(TUCrypto::AesDecode(data, TUCrypto::UTF8Encode(DataStorageKey())));
+					JsonObject = TUJsonHelper::GetJsonObject(JsonStr);
+					if (JsonObject)
+					{
+						JsonObject->SetNumberField(TEXT("Version"), 2);
+					}
+				}
+			}else
+			{
+				// 尝试从旧版路径中获取对应数据
+				filePath = OldDataStoragePath();
+				if (FFileHelper::LoadFileToArray(data, *filePath)) {
+					auto JsonStr = TUCrypto::UTF8Encode(TUCrypto::AesDecode(data, TUCrypto::UTF8Encode(DataStorageKeyV2())));
+					JsonObject = TUJsonHelper::GetJsonObject(JsonStr);
+					if (JsonObject == nullptr)
+					{
+						UE_LOG(LogTap, Log, TEXT("TUDataStorage Load V2 failed. try load V1. FilePath: %s"), *filePath);
+						JsonStr = TUCrypto::UTF8Encode(TUCrypto::AesDecode(data, TUCrypto::UTF8Encode(DataStorageKey())));
+						JsonObject = TUJsonHelper::GetJsonObject(JsonStr);
+						if (JsonObject)
+						{
+							JsonObject->SetNumberField(TEXT("Version"), 2);
+						}
+					}
+
+					// 如果旧版路径数据有效，保存到新版路径中
+					if (JsonObject != nullptr)
+					{
+						SaveToFile();
+					}
+				}
 			}
 		}
 		if (JsonObject == nullptr) {
 			JsonObject = MakeShareable(new FJsonObject);
+			JsonObject->SetNumberField(TEXT("Version"), 2);
 		}
 		return JsonObject;
 	}
@@ -135,12 +185,20 @@ private:
 		return Name;
 	};
 
-	static FString DataStoragePath() {
+	static FString OldDataStoragePath() {
 		return FPaths::SandboxesDir() + TEXT("/DataStorage/") + GetName();
+	};
+
+	static FString DataStoragePath() {
+		return FPaths::Combine(FPaths::ProjectSavedDir() ,TEXT("TapSDK2-UE_DataStorage"), GetName());
 	};
 
 	static FString DataStorageKey() {
 		return GetName() + TEXT("Key");
+	}
+
+	static FString DataStorageKeyV2() {
+		return TUDeviceInfo::GetLoginId() + GetName() + TEXT("Key");
 	}
 };
 

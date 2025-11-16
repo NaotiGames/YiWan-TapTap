@@ -121,31 +121,6 @@ void TULoginMobileImpl::Logout() {
 	TUMobileBridge::AsyncPerform(TAP_LOGIN_SERVICE, "logout", "");
 }
 
-void TULoginMobileImpl::GetTestQualification(TFunction<void(bool IsQualified, const FTUError& Error)> CallBack) {
-	TUMobileBridge::AsyncPerform(TAP_LOGIN_SERVICE, "getTestQualification", "", [=](const FString& ResultStr) {
-		if (CallBack == nullptr) {
-			return;
-		}
-		TSharedPtr<FJsonObject> TestQualificationRoot = TUJsonHelper::GetJsonObject(ResultStr);
-		if (TestQualificationRoot.IsValid()) {
-			bool TestQualification = TestQualificationRoot->GetIntegerField(TEXT("userTestQualification")) == 1;
-			if (TestQualification) {
-				CallBack(true, FTUError());
-				return;
-			} 
-			FString TestInnerStr;
-			if (TestQualificationRoot->TryGetStringField(TEXT("error"), TestInnerStr)) {
-				auto ErrorPtr = TUJsonHelper::GetUStruct<FTUError>(TestInnerStr);
-				if (ErrorPtr.IsValid()) {
-					CallBack(false, *ErrorPtr.Get());
-					return;
-				}
-			}
-		}
-
-		CallBack(false, FTUError());
-	});
-}
 
 void TULoginMobileImpl::QueryMutualList(FString Cursor, int Size,
 	TFunction<void(TSharedPtr<FTULoginFriendResult> ModelPtr, const FTUError& Error)> CallBack) {

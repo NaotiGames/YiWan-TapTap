@@ -2,84 +2,41 @@
 
 
 #include "TapPlatformButton.h"
-
-
 #include "Components/Button.h"
-#if PLATFORM_IOS || PLATFORM_ANDROID
-#include "ButtonHandle.h"
-#else
-#include "PCButtonHandle.h"
-typedef FPCButtonHandle FButtonHandle;
-#endif
+#include "TapUrlResourceLoader.h"
 
 void UTapPlatformButton::UpdateButtonTexture(const FString& Url)
 {
-	if (PlatformButtonHandle)
-	{
-		PlatformButtonHandle->UpdateTexture(Url);
-	}
+	FTapUrlResourceLoader::LoadImageTexture(Url, nullptr, FTapUrlResourceLoaderTextureDelegate::CreateUObject(this, &UTapPlatformButton::OnDownloadFinished));
 }
 
-void UTapPlatformButton::SetVisibility(ESlateVisibility InVisibility)
-{
-	Super::SetVisibility(InVisibility);
-	
-	const bool bNewVisible = (InVisibility == ESlateVisibility::Visible || InVisibility == ESlateVisibility::HitTestInvisible || InVisibility == ESlateVisibility::SelfHitTestInvisible);
-
-	if (PlatformButtonHandle)
-	{
-		PlatformButtonHandle->SetVisible(bNewVisible);
-	}
-}
-
-void UTapPlatformButton::ShowPlatformButtonNextFrame()
-{
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().SetTimerForNextTick(this, &UTapPlatformButton::ShowPlatformButtonImpl);
-	}
-}
-
-void UTapPlatformButton::ClosePlatformButton()
-{
-	if (PlatformButtonHandle)
-	{
-		PlatformButtonHandle->Close();
-	}
-}
-
-void UTapPlatformButton::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
-{
-	Super::NativeTick(MyGeometry, InDeltaTime);
-	if (PlatformButtonHandle)
-	{
-		const FGeometry& Geometry = Button->GetCachedGeometry();
-		PlatformButtonHandle->UpdateLayout(Geometry);
-	}
-}
+FTimerHandle TimerHandle;
 
 void UTapPlatformButton::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
-#if PLATFORM_WINDOWS || PLATFORM_MAC
+	Button->SetVisibility(ESlateVisibility::Hidden);
 	Button->OnClicked.AddDynamic(this, &UTapPlatformButton::OnPCButtonClicked);
-#else
-	Button->SetColorAndOpacity(FLinearColor(0.f, 0.f, 0.f, 0.f));
-#endif
-	PlatformButtonHandle = MakeShared<FButtonHandle>(this);
-}
-
-void UTapPlatformButton::ShowPlatformButtonImpl()
-{
-	if (PlatformButtonHandle)
-	{
-		PlatformButtonHandle->Show();
-	}
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UTapPlatformButton::ShowButton, 0.2);
 }
 
 
 void UTapPlatformButton::OnPCButtonClicked()
 {
 	OnClicked.ExecuteIfBound();
+}
+
+void UTapPlatformButton::OnDownloadFinished(UTexture2D* Texture) {
+	if (IsValid(Texture)) {
+		Button->SetVisibility(ESlateVisibility::Visible);
+		Button->WidgetStyle.Normal.SetResourceObject(Texture);
+		Button->WidgetStyle.Hovered.SetResourceObject(Texture);
+		Button->WidgetStyle.Pressed.SetResourceObject(Texture);
+		Button->SetStyle(Button->WidgetStyle);
+	}
+}
+
+void UTapPlatformButton::ShowButton() {
+	Button->SetVisibility(ESlateVisibility::Visible);
 }
 

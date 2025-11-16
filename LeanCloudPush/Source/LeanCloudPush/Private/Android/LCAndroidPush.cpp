@@ -2,7 +2,7 @@
 #include "Android/LCJNI.h"
 #include "Tools/LCHelper.h"
 #include "Tools/LCDebuger.h"
-#define LCMixPushUE "com/lc/LCMixPushUE"
+#define LCMixPushUE "com/tapsdk/lc/LCMixPushUE"
 
 void FLCAndroidPush::RegisterHuaWei() {
 	LCJNI::JNI JNI;
@@ -47,12 +47,36 @@ FString FLCAndroidPush::GetDeviceName() {
 	return JNI.GetFString(Name);
 }
 
+FString FLCAndroidPush::GetInstallationObjectID()
+{
+	LCJNI::JNI JNI;
+	auto Class = JNI.FindClass(LCMixPushUE);
+	auto Name = JNI.CallStaticObjectMethod(Class, "getInstallationObjectID", "()Ljava/lang/String;");
+	return JNI.GetFString(Name);
+}
+
+FString FLCAndroidPush::GetInstallationInstallationId()
+{
+	LCJNI::JNI JNI;
+	auto Class = JNI.FindClass(LCMixPushUE);
+	auto Name = JNI.CallStaticObjectMethod(Class, "getInstallationInstallationId", "()Ljava/lang/String;");
+	return JNI.GetFString(Name);
+}
+
+FString FLCAndroidPush::GetInstallationRegistrationId()
+{
+	LCJNI::JNI JNI;
+	auto Class = JNI.FindClass(LCMixPushUE);
+	auto Name = JNI.CallStaticObjectMethod(Class, "getInstallationRegistrationId", "()Ljava/lang/String;");
+	return JNI.GetFString(Name);
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 	
 
-	__attribute__((visibility("default"))) void Java_com_lc_VIVOPushMessageReceiver_onVIVOMessage(JNIEnv *jenv, jclass thiz, jstring Message)
+	__attribute__((visibility("default"))) void Java_com_tapsdk_lc_VIVOPushMessageReceiver_onVIVOMessage(JNIEnv *jenv, jclass thiz, jstring Message)
 	{
 		LCJNI::JNI JNI(jenv);
 		FString Message_UE = JNI.GetFStringFromParam(Message);

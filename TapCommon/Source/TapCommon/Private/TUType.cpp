@@ -41,3 +41,4 @@ namespace TUType {
 }
 
 
+DEFINE_LOG_CATEGORY(LogTap);

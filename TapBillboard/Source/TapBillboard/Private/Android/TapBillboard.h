@@ -4,12 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "TapBillboardCommon.h"
-#include "Android/AndroidJava.h"
 
 /**
  * 
  */
-class TAPBILLBOARD_API FTapBillboard : public FTapBillboardCommon, public FJavaClassObject
+class TAPBILLBOARD_API FTapBillboard : public FTapBillboardCommon
 {
 public:
 	FTapBillboard();
@@ -20,6 +19,10 @@ public:
 
 	virtual void OpenPanel(const FSimpleDelegate& OnSuccess, const FTapFailed& OnFailed, const FSimpleDelegate& OnClose) override;
 
+	virtual void ClosePanel() override;
+	
+	virtual void GetBadgeDetails(const FTapBadgeDetailsResult& OnSuccess, const FTapFailed& OnFailed) override;
+
 	virtual void OpenSplashPanel(const FSimpleDelegate& OnSuccess, const FTapFailed& OnFailed, const FSimpleDelegate& OnClose) override;
 
 	virtual void CloseSplashPanel() override;
@@ -28,34 +31,13 @@ public:
 
 	virtual void StopFetchMarqueeData(bool bCloseNow) override;
 
+	void HandleCustomLinkClickedEvent(const FString& Url);
 
-	void HandleCustomUrl(const FString& Url);
+	void HandleAudioStatusChangedEvent(bool bNewPlaying);
 
-	void HandleAudioStatusChanged(bool newPlaying);
-    
-	void HandleNavigateOpenSuccess();
-	void HandleNavigateOpenFailed(const FTUError& Error);
-	void HandleNavigateClosed();
-    
-	void HandleSplashOpenSuccess();
-	void HandleSplashOpenFailed(const FTUError& Error);
-	void HandleSplashClosed();
+	void HandleMarqueeShowEvent(const FString& MarqueeStr, const FString& ConfigStr);
 
-	static TMap<int64, FTapBillboard*> AllAndroidBillboard;
-protected:
-	FJavaClassMethod InitMethod;
-	FJavaClassMethod OpenPanelMethod;
-	FJavaClassMethod OpenSplashPanelMethod;
-	FJavaClassMethod CloseSplashPanelMethod;
-	FJavaClassMethod StartFetchMarqueeDataMethod;
-	FJavaClassMethod StopFetchMarqueeDataMethod;
+	void HandleMarqueeCloseEvent();
 
-	FSimpleDelegate NavigateSuccess;
-	FTapFailed NavigateFailed;
-	FSimpleDelegate NavigateClose;
-	
-	FSimpleDelegate SplashSuccess;
-	FTapFailed  SplashFailed;
-	FSimpleDelegate SplashClose;
 };
 

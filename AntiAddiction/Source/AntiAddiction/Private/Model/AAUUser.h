@@ -13,15 +13,18 @@ struct FAAUUser {
 	FString UserID;
 
 	UPROPERTY()
-	FString AccessToken;
+	FString AccessTokenV2;
 
 	UPROPERTY()
-	EAAUAgeLimit AgeLimit = EAAUAgeLimit::Unknown;
+	FString AccessToken;
 
+	EAAUAgeLimit AgeLimit;
 
 	FAAUUser() = default;
-	FAAUUser(const FString& _UserID, const FString& _AccessToken, EAAUAgeLimit _AgeLimit)
-		: UserID(_UserID), AccessToken(_AccessToken), AgeLimit(_AgeLimit) {}
+	FAAUUser(const FString& _UserID, const FString& _AccessToken)
+		: UserID(_UserID), AccessTokenV2(_AccessToken) {}
+
+	void ResetAgeLimit(const int ageLimit, bool isAdult);
 
 private:
 	

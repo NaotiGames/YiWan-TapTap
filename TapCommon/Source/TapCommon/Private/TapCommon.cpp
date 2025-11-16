@@ -5,114 +5,130 @@
 #if PLATFORM_MAC
 #include "WebBrowserModule.h"
 #endif
-#include "Slate/STapThrobber.h"
-#include "Slate/TapStyleCommon.h"
+#include "Slate/Widgets/STapThrobber.h"
 #include "Http.h"
 #include "IImageWrapper.h"
 #include "IImageWrapperModule.h"
-#include "Engine/Texture2DDynamic.h"
+#include "ImageUtils.h"
+#include "TapSubsystem.h"
+#include "TUType.h"
+#include "Desktop/TapClientBridge.hpp"
 
-#define LOCTEXT_NAMESPACE "FTapCommonModule"
+#include "Styling/SlateStyleRegistry.h"
+#include "TapUECommon.h"
+
+
+#define TAP_STYLE_NAME_COMMON "Tap.Common"
 
 void FTapCommonModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 #if PLATFORM_MAC
 	IWebBrowserModule::Get().GetSingleton();
 #endif
-	FTapStyleCommon::Initialize();
+	Style = FSlateGameResources::New(TAP_STYLE_NAME_COMMON, "/TapCommon/Styles", "/TapCommon/Styles");
+	FSlateStyleRegistry::RegisterSlateStyle(*Style);
+
+#if PLATFORM_ANDROID || PLATFORM_IOS
+	TapUECommon::SetXUA();
+#endif
+
+#if PLATFORM_WINDOWS
+	if (!FModuleManager::Get().IsModuleLoaded("Messaging"))
+	{
+		FModuleManager::Get().LoadModule("Messaging");
+	}
+	TapClientBridge::LoadSDK();
+#endif
+	
 }
 
 void FTapCommonModule::ShutdownModule()
 {
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
-
-	FTapStyleCommon::Shutdown();
+	FSlateStyleRegistry::UnRegisterSlateStyle(TAP_STYLE_NAME_COMMON);
+	
 }
 
-void WriteRawToTexture_RenderThread(FTexture2DDynamicResource* TextureResource, TArray64<uint8>* RawData, bool bUseSRGB = true)
-{
-	check(IsInRenderingThread());
-
-	if (TextureResource)
-	{
-		FRHITexture2D* TextureRHI = TextureResource->GetTexture2DRHI();
-
-		int32 Width = TextureRHI->GetSizeX();
-		int32 Height = TextureRHI->GetSizeY();
-
-		uint32 DestStride = 0;
-		uint8* DestData = reinterpret_cast<uint8*>(RHILockTexture2D(TextureRHI, 0, RLM_WriteOnly, DestStride, false, false));
-
-		for (int32 y = 0; y < Height; y++)
-		{
-			uint8* DestPtr = &DestData[((int64)Height - 1 - y) * DestStride];
-
-			const FColor* SrcPtr = &((FColor*)(RawData->GetData()))[((int64)Height - 1 - y) * Width];
-			for (int32 x = 0; x < Width; x++)
-			{
-				*DestPtr++ = SrcPtr->B;
-				*DestPtr++ = SrcPtr->G;
-				*DestPtr++ = SrcPtr->R;
-				*DestPtr++ = SrcPtr->A;
-				SrcPtr++;
-			}
-		}
-
-		RHIUnlockTexture2D(TextureRHI, 0, false, false);
-	}
-
-	delete RawData;
-}
 
 void HandleImageRequest(FHttpRequestPtr HttpRequest, FHttpResponsePtr HttpResponse, bool bSucceeded, FAsyncDownloadImage Callback)
 {
 	if ( bSucceeded && HttpResponse.IsValid() && HttpResponse->GetContentLength() > 0 )
 	{
-		IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(FName("ImageWrapper"));
-		TSharedPtr<IImageWrapper> ImageWrappers[3] =
-		{
-			ImageWrapperModule.CreateImageWrapper(EImageFormat::PNG),
-			ImageWrapperModule.CreateImageWrapper(EImageFormat::JPEG),
-			ImageWrapperModule.CreateImageWrapper(EImageFormat::BMP),
-		};
+		UTexture2D* Tex = FImageUtils::ImportBufferAsTexture2D(HttpResponse->GetContent());
+		Callback.ExecuteIfBound(Tex);		
+	}
+	else
+	{
+		Callback.ExecuteIfBound(nullptr);
+		UE_LOG(LogTap, Error, TEXT("Net error, Http success:%s."), bSucceeded ? TEXT("True") : TEXT("False"));
+	}
+}
 
-		for ( auto ImageWrapper : ImageWrappers )
-		{
-			if ( ImageWrapper.IsValid() && ImageWrapper->SetCompressed(HttpResponse->GetContent().GetData(), HttpResponse->GetContentLength()) )
-			{
-				TArray64<uint8>* RawData = new TArray64<uint8>();
-				const ERGBFormat InFormat = ERGBFormat::BGRA;
-				if ( ImageWrapper->GetRaw(InFormat, 8, *RawData) )
-				{
-					if ( UTexture2DDynamic* Texture = UTexture2DDynamic::Create(ImageWrapper->GetWidth(), ImageWrapper->GetHeight()) )
-					{
-						Texture->SRGB = true;
-						Texture->UpdateResource();
-
-						FTexture2DDynamicResource* TextureResource = static_cast<FTexture2DDynamicResource*>(Texture->Resource);
-						if (TextureResource)
-						{
-							ENQUEUE_RENDER_COMMAND(FWriteRawDataToTexture)(
-								[TextureResource, RawData](FRHICommandListImmediate& RHICmdList)
-								{
-									WriteRawToTexture_RenderThread(TextureResource, RawData);
-								});
-						}
-						else
-						{
-							delete RawData;
-						}
-						Callback.ExecuteIfBound(Texture);						
-						return;
-					}
-				}
-			}
-		}
+void HandleImageBrushRequest(FHttpRequestPtr HttpRequest, FHttpResponsePtr HttpResponse, bool bSucceeded, FAsyncDownloadBrush Callback)
+{
+	check(HttpRequest);
+	if (!HttpResponse.IsValid())
+	{
+		UE_LOG(LogTap, Error, TEXT("Image Download: Connection Failed. url=%s"), *HttpRequest->GetURL());
+		Callback.ExecuteIfBound(nullptr);
+		return;
 	}
 
-	Callback.ExecuteIfBound(nullptr);
+	FString ETag = HttpResponse->GetHeader("ETag");
+
+	// check status code
+	int32 StatusCode = HttpResponse->GetResponseCode();
+	if (StatusCode / 100 != 2)
+	{
+		UE_LOG(LogTap, Error, TEXT("Image Download: HTTP response %d. url=%s"), StatusCode, *HttpRequest->GetURL());
+		Callback.ExecuteIfBound(nullptr);
+		return;
+	}
+
+	// build an image wrapper for this type
+	static const FName MODULE_IMAGE_WRAPPER("ImageWrapper");
+	IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(MODULE_IMAGE_WRAPPER);
+
+	// Look at the signature of the downloaded image to detect image type. (and ignore the content type header except for error reporting)
+	const TArray<uint8>& Content = HttpResponse->GetContent();
+	EImageFormat ImageFormat = ImageWrapperModule.DetectImageFormat(Content.GetData(), Content.Num());
+
+	if (ImageFormat == EImageFormat::Invalid)
+	{
+		FString ContentType = HttpResponse->GetContentType();
+		UE_LOG(LogTap, Error, TEXT("Image Download: Could not recognize file type of image downloaded from url %s, server-reported content type: %s"), *HttpRequest->GetURL(), *ContentType);
+		Callback.ExecuteIfBound(nullptr);
+		return;
+	}
+
+	TSharedPtr<IImageWrapper> ImageWrapper = ImageWrapperModule.CreateImageWrapper(ImageFormat);
+	if (!ImageWrapper.IsValid())
+	{
+		UE_LOG(LogTap, Error, TEXT("Image Download: Unable to make image wrapper for image format %d"), (int32)ImageFormat);
+		Callback.ExecuteIfBound(nullptr);
+		return;
+	}
+
+	// parse the content
+	if (!ImageWrapper->SetCompressed(Content.GetData(), Content.Num()))
+	{
+		UE_LOG(LogTap, Error, TEXT("Image Download: Unable to parse image format %d from %s"), (int32)ImageFormat, *HttpRequest->GetURL());
+		Callback.ExecuteIfBound(nullptr);
+		return;
+	}
+
+	// get the raw image data
+	TArray<uint8> RawImageData;
+	if (!ImageWrapper->GetRaw(ERGBFormat::RGBA, 8, RawImageData))
+	{
+		UE_LOG(LogTap, Error, TEXT("Image Download: Unable to convert image format %d to BGRA 8"), (int32)ImageFormat);
+		Callback.ExecuteIfBound(nullptr);
+		return;
+	}
+
+	// make a dynamic image
+	FName ResourceName(*HttpRequest->GetURL());
+	TSharedPtr<FSlateDynamicImageBrush> DownloadedBrush = FSlateDynamicImageBrush::CreateWithImageData(ResourceName, FVector2D(ImageWrapper->GetWidth(), ImageWrapper->GetHeight()), RawImageData);
+	Callback.ExecuteIfBound(DownloadedBrush);
 }
 
 void FTapCommonModule::AsyncDownloadImage(const FString& Url, const FAsyncDownloadImage& Callback)
@@ -128,15 +144,28 @@ void FTapCommonModule::AsyncDownloadImage(const FString& Url, const FAsyncDownlo
 	}
 }
 
+void FTapCommonModule::AsyncDownloadImage(const FString& Url, const FAsyncDownloadBrush& Callback)
+{
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = FHttpModule::Get().CreateRequest();
+
+	HttpRequest->OnProcessRequestComplete().BindStatic(&HandleImageBrushRequest, Callback);
+	HttpRequest->SetURL(Url);
+	HttpRequest->SetVerb(TEXT("GET"));
+	if (!HttpRequest->ProcessRequest())
+	{
+		Callback.ExecuteIfBound(nullptr);
+	}
+}
+
 void FTapCommonModule::TapThrobberShowWait()
 {
 	FTapCommonModule& Module = FModuleManager::GetModuleChecked<FTapCommonModule>("TapCommon");
 	if (!Module.TapThrobber)
 	{
-		SAssignNew(Module.TapThrobber, STapThrobber);
+		SAssignNew(Module.TapThrobber, STapThrobber).bBlock(true);
 		if (Module.TapThrobber && GEngine && GEngine->GameViewport)
 		{
-			GEngine->GameViewport->AddViewportWidgetContent(Module.TapThrobber.ToSharedRef(), MAX_int16);
+			UTapSubsystem::AddWidget(Module.TapThrobber.ToSharedRef(), MAX_int16);
 		}
 	}
 }
@@ -152,10 +181,11 @@ void FTapCommonModule::TapThrobberShowWaitAndToast(const FString& Toast)
 	else
 	{
 		SAssignNew(Module.TapThrobber, STapThrobber)
+		.bBlock(true)
 		.Content(NewContent);
 		if (Module.TapThrobber && GEngine && GEngine->GameViewport)
 		{
-			GEngine->GameViewport->AddViewportWidgetContent(Module.TapThrobber.ToSharedRef(), MAX_int16);
+			UTapSubsystem::AddWidget(Module.TapThrobber.ToSharedRef(), MAX_int16);
 		}
 	}
 }
@@ -165,7 +195,7 @@ void FTapCommonModule::TapThrobberDismiss()
 	FTapCommonModule& Module = FModuleManager::GetModuleChecked<FTapCommonModule>("TapCommon");
 	if (Module.TapThrobber && GEngine && GEngine->GameViewport)
 	{
-		GEngine->GameViewport->RemoveViewportWidgetContent(Module.TapThrobber.ToSharedRef());
+		UTapSubsystem::RemoveWidget(Module.TapThrobber.ToSharedRef());
 		Module.TapThrobber.Reset();
 	}
 }
@@ -190,7 +220,7 @@ void FTapCommonModule::TapThrobberShowToast(const FString& Toast, float TimeInte
 		.OnRemoveSelf(FOnTapThrobberRemoveSelf::CreateStatic(&FTapCommonModule::OnTapThrobberRemoveSelf));
 		if (Module.TapThrobber && GEngine && GEngine->GameViewport)
 		{
-			GEngine->GameViewport->AddViewportWidgetContent(Module.TapThrobber.ToSharedRef(), MAX_int16);
+			UTapSubsystem::AddWidget(Module.TapThrobber.ToSharedRef(), MAX_int16);
 		}
 	}
 }
@@ -201,7 +231,6 @@ void FTapCommonModule::OnTapThrobberRemoveSelf(const TSharedRef<STapThrobber>& T
 	Module.TapThrobber.Reset();
 }
 
-#undef LOCTEXT_NAMESPACE
 	
 IMPLEMENT_MODULE(FTapCommonModule, TapCommon)
 

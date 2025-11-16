@@ -8,7 +8,7 @@ TUAuthResult TUAuthResult::CancelInit()
 TUAuthResult TUAuthResult::SuccessInit(const TSharedPtr<FTUAccessToken>& Token)
 {
 	TUAuthResult Result;
-	Result.Type = Success;
+	Result.ResultType = Success;
 	Result.Token = Token;
 	return Result;
 }
@@ -16,13 +16,13 @@ TUAuthResult TUAuthResult::SuccessInit(const TSharedPtr<FTUAccessToken>& Token)
 TUAuthResult TUAuthResult::FailInit(const FTUError& Error)
 {
 	TUAuthResult Result;
-	Result.Type = Fail;
+	Result.ResultType = Fail;
 	Result.Error = MakeShareable(new FTUError(Error));
 	return Result;
 }
 
 enum TUAuthResult::Type TUAuthResult::GetType() const {
-	return Type;
+	return ResultType;
 }
 
 TSharedPtr<FTUAccessToken> TUAuthResult::GetToken() const {
@@ -35,7 +35,7 @@ TSharedPtr<FTUError> TUAuthResult::GetError() const {
 
 TUAuthResult::TUAuthResult()
 {
-	Type = Cancel;
+	ResultType = Cancel;
 	Token = nullptr;
 	Error = nullptr;
 }

@@ -1,4 +1,4 @@
-package com.lc;
+package com.tapsdk.lc;
 
 import android.content.Context;
 

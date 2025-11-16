@@ -99,4 +99,34 @@ NSDictionary * IOSHelper::Convert(TSharedPtr<FJsonObject> JsonObject) {
 }
 
 
+NSData * IOSHelper::Convert(const TArray<uint8>& DataBuffer) {
+	return  [NSData dataWithBytes:DataBuffer.GetData() length:DataBuffer.Num()];
+}
+
+TArray<uint8> IOSHelper::Convert(NSData * data) {
+	TArray<uint8> OutBytes;
+	if (data != nil)
+	{
+		uint32 Size = data.length;
+		OutBytes.AddUninitialized(Size);
+		FPlatformMemory::Memcpy(OutBytes.GetData(), [data bytes], Size);
+	}
+	return MoveTemp(OutBytes);
+}
+
+
+UIColor * IOSHelper::Convert(const FColor& Color) {
+	return [UIColor colorWithRed:Color.R / 255.0f green:Color.G / 255.0f blue:Color.B / 255.0f alpha:Color.A / 255.0f];
+}
+
+FColor IOSHelper::Convert(UIColor *color) {
+	CGFloat red, green, blue, alpha;
+	[color getRed:&red green:&green blue:&blue alpha:&alpha];
+	return FColor(FMath::RoundToInt(red * 255), 
+			 FMath::RoundToInt(green * 255),
+			 FMath::RoundToInt(blue * 255),
+			 FMath::RoundToInt(alpha * 255));
+}
+
+
 

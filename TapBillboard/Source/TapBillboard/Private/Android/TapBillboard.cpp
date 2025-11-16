@@ -3,220 +3,223 @@
 
 #include "TapBillboard.h"
 
-#include "Android/AndroidApplication.h"
-#include "Android/AndroidJavaEnv.h"
-#include <jni.h>
-
+#include "StringHelpers.h"
+#include "TapJNI.h"
+#include "TapJNICallbackHelper.h"
 #include "TUHelper.h"
-#include "Android/AndroidPlatform.h"
-#include "Android/AndroidJNI.h"
+#include "TUJsonHelper.h"
 
-TMap<int64, FTapBillboard*> FTapBillboard::AllAndroidBillboard;
+#define TapBillboardUE "com/tds/TapBillboardUE"
+
+FTapBillboard *TapBillboardPtr = nullptr;
 
 FTapBillboard::FTapBillboard()
-	: FJavaClassObject("com.tds.UEBillboard", "(J)V", reinterpret_cast<int64>(this))
-	, InitMethod(GetClassMethod("init", "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;I)V"))
-	, OpenPanelMethod(GetClassMethod("openPanel", "()V"))
-	, OpenSplashPanelMethod(GetClassMethod("openSplashPanel", "()V"))
-	, CloseSplashPanelMethod(GetClassMethod("closeSplashPanel", "()V"))
-	, StartFetchMarqueeDataMethod(GetClassMethod("startFetchMarqueeData", "()V"))
-	, StopFetchMarqueeDataMethod(GetClassMethod("stopFetchMarqueeData", "(Z)V"))
 {
-	AllAndroidBillboard.Add(reinterpret_cast<int64>(this), this);
+	TapJNI::JNI JNI;
+	auto ClassObject = JNI.FindClass(TapBillboardUE);
+	JNI.CallStaticVoidMethod(ClassObject, "registerListeners", "()V");
+	TapBillboardPtr = this;
 }
 
-FTapBillboard::~FTapBillboard()
-{
-	AllAndroidBillboard.Remove(reinterpret_cast<int64>(this));
+FTapBillboard::~FTapBillboard() {
+	TapJNI::JNI JNI;
+	auto ClassObject = JNI.FindClass(TapBillboardUE);
+	JNI.CallStaticVoidMethod(ClassObject, "unregisterListeners", "()V");
+	if (TapBillboardPtr == this) {
+		TapBillboardPtr = nullptr;
+	}
 }
+
 void FTapBillboard::Init(const FTUConfig& InConfig)
 {
-	FTapBillboardCommon::Init(InConfig);
-	if (CheckConfig().IsValid())
-	{
+	if (!InConfig.BillboardConfig.IsValid()) {
 		return;
 	}
-	
-	if (InConfig.BillboardConfig)
-	{
-		JNIEnv*	JEnv = AndroidJavaEnv::GetJavaEnv();
 
-		FScopedJavaObject<jstring> jClientID = FJavaHelper::ToJavaString(JEnv, InConfig.ClientID);
-		FScopedJavaObject<jstring> jClientToken = FJavaHelper::ToJavaString(JEnv, InConfig.ClientToken);
-		FScopedJavaObject<jstring> jServerUrl = FJavaHelper::ToJavaString(JEnv, InConfig.ServerURL);
-		
-		FScopedJavaObject<jstring> jBillboardUrl = FJavaHelper::ToJavaString(JEnv, InConfig.BillboardConfig->BillboardUrl);
-
-		auto jDimensionString = NewScopedJavaObject(JEnv, (jobjectArray)JEnv->NewObjectArray(InConfig.BillboardConfig->Dimensions.Num() * 2, FJavaWrapper::JavaStringClass, nullptr));
-		int32 Index = 0;
-		for (TTuple<FString, FString>& T : InConfig.BillboardConfig->Dimensions)
-		{
-			JEnv->SetObjectArrayElement(*jDimensionString, Index++, *FJavaHelper::ToJavaString(JEnv, T.Key));
-			JEnv->SetObjectArrayElement(*jDimensionString, Index++, *FJavaHelper::ToJavaString(JEnv, T.Value));
-		}
-		
-		CallMethod<void>(InitMethod, *jClientID, *jClientToken, *jServerUrl, *jBillboardUrl, *jDimensionString, (InConfig.RegionType == ERegionType::CN ? 0 : 1));
-	}
-	else
+	TapJNI::JNI JNI;
+	auto ClassObject = JNI.FindClass(TapBillboardUE);
+	auto ClientID = JNI.ToJavaString(InConfig.ClientID);
+	auto ClientToken = JNI.ToJavaString(InConfig.ClientToken);
+	auto ServerURL = JNI.ToJavaString(InConfig.ServerURL);
+	auto BillboardUrl = JNI.ToJavaString(InConfig.BillboardConfig->BillboardUrl);
+	TArray<FString> DimensionsUE;
+	for (TTuple<FString, FString>& T : InConfig.BillboardConfig->Dimensions)
 	{
-		ensure(false);
+		DimensionsUE.Add(T.Key);
+		DimensionsUE.Add(T.Value);
 	}
+	auto Dimensions = JNI.GetStringArray(DimensionsUE);
+	JNI.CallStaticVoidMethod(ClassObject, "init",
+							 "(Landroid/app/Activity;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/String;I)V",
+							 *JNI.GetActivity(), *ClientID, *ClientToken, *ServerURL, *BillboardUrl, *Dimensions, (InConfig.RegionType == ERegionType::CN ? 0 : 1));
+
 }
 
 void FTapBillboard::OpenPanel(const FSimpleDelegate& OnSuccess, const FTapFailed& OnFailed, const FSimpleDelegate& OnClose)
 {
-	if (NavigateSuccess.IsBound())
-	{
-		OnFailed.ExecuteIfBound(FTUError(-1, TEXT("Duplicate operation.")));
-		return;
-	}
-	NavigateSuccess = OnSuccess;
-	NavigateFailed = OnFailed;
-	NavigateClose = OnClose;
-	CallMethod<void>(OpenPanelMethod);
+	auto OnSuccessCopy = OnSuccess;
+	auto OnFailedCopy = OnFailed;
+	auto OnCloseCopy = OnClose;
+	TapJNI::JNI JNI;
+	auto ClassObject = JNI.FindClass(TapBillboardUE);
+	JNI.CallStaticVoidMethod(ClassObject, "openPanel", "(Landroid/app/Activity;I)V",
+		*JNI.GetActivity(), FTapJNICallbackHelper::AddCallBack(OnSuccessCopy, OnFailedCopy, OnCloseCopy));
 }
 
 void FTapBillboard::OpenSplashPanel(const FSimpleDelegate& OnSuccess, const FTapFailed& OnFailed, const FSimpleDelegate& OnClose)
 {
-	if (SplashSuccess.IsBound())
-	{
-		OnFailed.ExecuteIfBound(FTUError(-1, TEXT("Duplicate operation.")));
-		return;
-	}
-	SplashSuccess = OnSuccess;
-	SplashFailed = OnFailed;
-	SplashClose = OnClose;
-	CallMethod<void>(OpenSplashPanelMethod);
+	auto OnSuccessCopy = OnSuccess;
+	auto OnFailedCopy = OnFailed;
+	auto OnCloseCopy = OnClose;
+	TapJNI::JNI JNI;
+	auto ClassObject = JNI.FindClass(TapBillboardUE);
+	JNI.CallStaticVoidMethod(ClassObject, "openSplashPanel", "(Landroid/app/Activity;I)V",
+		*JNI.GetActivity(), FTapJNICallbackHelper::AddCallBack(OnSuccessCopy, OnFailedCopy, OnCloseCopy));
+}
+
+void FTapBillboard::ClosePanel() {
+	TapJNI::JNI JNI;
+	auto ClassObject = JNI.FindClass(TapBillboardUE);
+	JNI.CallStaticVoidMethod(ClassObject, "closePanel", "()V");
 }
 
 void FTapBillboard::CloseSplashPanel()
 {
-	CallMethod<void>(CloseSplashPanelMethod);
+	TapJNI::JNI JNI;
+	auto ClassObject = JNI.FindClass(TapBillboardUE);
+	JNI.CallStaticVoidMethod(ClassObject, "closeSplashPanel", "()V");
 }
 
 void FTapBillboard::StartFetchMarqueeData()
 {
-	CallMethod<void>(StartFetchMarqueeDataMethod);
+	TapJNI::JNI JNI;
+	auto ClassObject = JNI.FindClass(TapBillboardUE);
+	JNI.CallStaticVoidMethod(ClassObject, "startFetchMarqueeData", "(Landroid/app/Activity;)V",
+		*JNI.GetActivity());
 }
 
 void FTapBillboard::StopFetchMarqueeData(bool bCloseNow)
 {
-	CallMethod<void>(StopFetchMarqueeDataMethod, bCloseNow);
+	TapJNI::JNI JNI;
+	auto ClassObject = JNI.FindClass(TapBillboardUE);
+	JNI.CallStaticVoidMethod(ClassObject, "stopFetchMarqueeData", "(Z)V", bCloseNow);
 }
 
-void FTapBillboard::HandleCustomUrl(const FString& Url)
-{
+void FTapBillboard::HandleCustomLinkClickedEvent(const FString& Url) {
 	OnCustomLinkClicked.Broadcast(Url);
 }
 
-void FTapBillboard::HandleAudioStatusChanged(bool newPlaying)
-{
-	OnAudioOutputStateChanged.ExecuteIfBound(newPlaying);
+void FTapBillboard::HandleAudioStatusChangedEvent(bool bNewPlaying) {
+	OnAudioOutputStateChanged.ExecuteIfBound(bNewPlaying);
 }
 
-void FTapBillboard::HandleNavigateOpenSuccess()
-{
-	NavigateSuccess.ExecuteIfBound();
+void FTapBillboard::HandleMarqueeShowEvent(const FString& MarqueeStr, const FString& ConfigStr) {
+	OnBillboardMarqueeShow.Broadcast(FTapBillboardMarquee(TUJsonHelper::GetJsonObject(MarqueeStr)), FTapBillboardMarqueeConfig(TUJsonHelper::GetJsonObject(ConfigStr)));
 }
 
-void FTapBillboard::HandleNavigateOpenFailed(const FTUError& Error)
-{
-	NavigateFailed.ExecuteIfBound(Error);
-	NavigateSuccess.Unbind();
-	NavigateFailed.Unbind();
-	NavigateClose.Unbind();
+void FTapBillboard::HandleMarqueeCloseEvent() {
+	OnBillboardMarqueeClose.Broadcast();
 }
 
-void FTapBillboard::HandleNavigateClosed()
-{
-	NavigateClose.ExecuteIfBound();
-	NavigateSuccess.Unbind();
-	NavigateFailed.Unbind();
-	NavigateClose.Unbind();
+void FTapBillboard::GetBadgeDetails(const FTapBadgeDetailsResult& OnSuccess, const FTapFailed& OnFailed) {
+	auto OnSuccessCopy = OnSuccess;
+	auto OnFailedCopy = OnFailed;
+	TapJNI::JNI JNI;
+	auto ClassObject = JNI.FindClass(TapBillboardUE);
+	JNI.CallStaticVoidMethod(ClassObject, "getBadgeDetails", "(I)V",
+		FTapJNICallbackHelper::AddCallBack(OnSuccessCopy, OnFailedCopy));
 }
 
-void FTapBillboard::HandleSplashOpenSuccess()
-{
-	SplashSuccess.ExecuteIfBound();
-}
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-void FTapBillboard::HandleSplashOpenFailed(const FTUError& Error)
-{
-	SplashFailed.ExecuteIfBound(Error);
-	SplashSuccess.Unbind();
-	SplashFailed.Unbind();
-	SplashClose.Unbind();
-}
-
-void FTapBillboard::HandleSplashClosed()
-{
-	SplashClose.ExecuteIfBound();
-	SplashSuccess.Unbind();
-	SplashFailed.Unbind();
-	SplashClose.Unbind();
-}
-
-JNI_METHOD void Java_com_tds_UEBillboard_NotifyCustomUrl(JNIEnv* JEnv, jobject jBillboard, jlong nativePtr, jstring Url)
-{
-	if (FTapBillboard* Ptr = FTapBillboard::AllAndroidBillboard.FindRef(nativePtr))
-	{
-		FString URL = FJavaHelper::FStringFromParam(JEnv, Url);
-		TUHelper::PerformOnGameThread( [Ptr, URL](){ Ptr->HandleCustomUrl(URL); });
+	__attribute__((visibility("default"))) void Java_com_tds_TapBillboardUE_NotifyNavigateOpenFailed (JNIEnv* jenv, jclass thiz, int callBackID, int code, jstring message) {
+		auto CallBackPtr = FTapJNICallbackHelper::FindCallBack<FTapFailed>(callBackID, 1);
+		if (CallBackPtr == nullptr) {
+			return;
+		}
+		TapJNI::JNI JNI(jenv);
+		FTUError Error(code, JNI.GetFStringFromParam(message));
+		TUHelper::PerformOnGameThread([=]() {
+			CallBackPtr->ExecuteIfBound(Error);
+			FTapJNICallbackHelper::RemoveCallBack(callBackID);
+		});
 	}
-}
 
-JNI_METHOD void Java_com_tds_UEBillboard_NotifyAudioStatusChanged(JNIEnv* JEnv, jobject jBillboard, jlong nativePtr, bool newPlaying)
-{
-	if (FTapBillboard* Ptr = FTapBillboard::AllAndroidBillboard.FindRef(nativePtr))
-	{
-		TUHelper::PerformOnGameThread( [Ptr, newPlaying](){ Ptr->HandleAudioStatusChanged(newPlaying); });
+	__attribute__((visibility("default"))) void Java_com_tds_TapBillboardUE_NotifyNavigateOpenSuccess (JNIEnv* jenv, jclass thiz, int callBackID) {
+		auto CallBackPtr = FTapJNICallbackHelper::FindCallBack<FSimpleDelegate>(callBackID, 0);
+		if (CallBackPtr == nullptr) {
+			return;
+		}
+		TUHelper::PerformOnGameThread([=]() {
+			CallBackPtr->ExecuteIfBound();
+		});
 	}
-}
 
-JNI_METHOD void Java_com_tds_UEBillboard_NotifyNavigateOpenSuccess(JNIEnv* JEnv, jobject jBillboard, jlong nativePtr)
-{
-	if (FTapBillboard* Ptr = FTapBillboard::AllAndroidBillboard.FindRef(nativePtr))
-	{
-		TUHelper::PerformOnGameThread( [Ptr](){ Ptr->HandleNavigateOpenSuccess(); });
+	__attribute__((visibility("default"))) void Java_com_tds_TapBillboardUE_NotifyNavigateClosed (JNIEnv* jenv, jclass thiz, int callBackID) {
+		auto CallBackPtr = FTapJNICallbackHelper::FindCallBack<FSimpleDelegate>(callBackID, 2);
+		if (CallBackPtr == nullptr) {
+			return;
+		}
+		TUHelper::PerformOnGameThread([=]() {
+			CallBackPtr->ExecuteIfBound();
+			FTapJNICallbackHelper::RemoveCallBack(callBackID);
+		});
 	}
-}
-JNI_METHOD void Java_com_tds_UEBillboard_NotifyNavigateOpenFailed(JNIEnv* JEnv, jobject jBillboard, jlong nativePtr, jint code, jstring message)
-{
-	if (FTapBillboard* Ptr = FTapBillboard::AllAndroidBillboard.FindRef(nativePtr))
-	{
-		FTUError Error(static_cast<int32>(code), FJavaHelper::FStringFromParam(JEnv, message));
-		TUHelper::PerformOnGameThread( [Ptr, Error](){ Ptr->HandleNavigateOpenFailed(Error); });
-	}
-}
-JNI_METHOD void Java_com_tds_UEBillboard_NotifyNavigateClosed(JNIEnv* JEnv, jobject jBillboard, jlong nativePtr)
-{
-	if (FTapBillboard* Ptr = FTapBillboard::AllAndroidBillboard.FindRef(nativePtr))
-	{
-		TUHelper::PerformOnGameThread( [Ptr](){ Ptr->HandleNavigateClosed(); });
-	}
-}
 
-JNI_METHOD void Java_com_tds_UEBillboard_NotifySplashOpenSuccess(JNIEnv* JEnv, jobject jBillboard, jlong nativePtr)
-{
-	if (FTapBillboard* Ptr = FTapBillboard::AllAndroidBillboard.FindRef(nativePtr))
-	{
-		TUHelper::PerformOnGameThread( [Ptr](){ Ptr->HandleSplashOpenSuccess(); });
+	__attribute__((visibility("default"))) void Java_com_tds_TapBillboardUE_GetBadgeDetailsFailed (JNIEnv* jenv, jclass thiz, int callBackID, int code, jstring message) {
+		auto CallBackPtr = FTapJNICallbackHelper::FindCallBack<FTapFailed>(callBackID, 1);
+		if (CallBackPtr == nullptr) {
+			return;
+		}
+		TapJNI::JNI JNI(jenv);
+		FTUError Error(code, JNI.GetFStringFromParam(message));
+		TUHelper::PerformOnGameThread([=]() {
+			CallBackPtr->ExecuteIfBound(Error);
+			FTapJNICallbackHelper::RemoveCallBack(callBackID);
+		});
 	}
-}
-JNI_METHOD void Java_com_tds_UEBillboard_NotifySplashOpenFailed(JNIEnv* JEnv, jobject jBillboard, jlong nativePtr, jint code, jstring message)
-{
-	if (FTapBillboard* Ptr = FTapBillboard::AllAndroidBillboard.FindRef(nativePtr))
-	{
-		FTUError Error(static_cast<int32>(code), FJavaHelper::FStringFromParam(JEnv, message));
-		TUHelper::PerformOnGameThread( [Ptr, Error](){ Ptr->HandleSplashOpenFailed(Error); });
+
+	__attribute__((visibility("default"))) void Java_com_tds_TapBillboardUE_GetBadgeDetailsSuccess (JNIEnv* jenv, jclass thiz, int callBackID, int showRedDot, jstring closeButtonImg) {
+		auto CallBackPtr = FTapJNICallbackHelper::FindCallBack<FTapBadgeDetailsResult>(callBackID, 1);
+		if (CallBackPtr == nullptr) {
+			return;
+		}
+		TapJNI::JNI JNI(jenv);
+		FBadgeDetails BadgeDetails;
+		BadgeDetails.show_red_dot = showRedDot;
+		BadgeDetails.close_button_img = JNI.GetFStringFromParam(closeButtonImg);
+		TUHelper::PerformOnGameThread([=]() {
+			CallBackPtr->ExecuteIfBound(BadgeDetails);
+			FTapJNICallbackHelper::RemoveCallBack(callBackID);
+		});
 	}
-}
-JNI_METHOD void Java_com_tds_UEBillboard_NotifySplashClosed(JNIEnv* JEnv, jobject jBillboard, jlong nativePtr)
-{
-	if (FTapBillboard* Ptr = FTapBillboard::AllAndroidBillboard.FindRef(nativePtr))
-	{
-		TUHelper::PerformOnGameThread( [Ptr](){ Ptr->HandleSplashClosed(); });
+
+	__attribute__((visibility("default"))) void Java_com_tds_TapBillboardUE_NotifyCustomUrl (JNIEnv* jenv, jclass thiz, jstring Url) {
+		TapJNI::JNI JNI(jenv);
+		FString UrlUE = JNI.GetFStringFromParam(Url);
+		TUHelper::PerformOnGameThread([=](){ TapBillboardPtr->HandleCustomLinkClickedEvent(UrlUE); });
 	}
-}
+
+	__attribute__((visibility("default"))) void Java_com_tds_TapBillboardUE_NotifyAudioStatusChanged (JNIEnv* jenv, jclass thiz, bool newPlaying) {
+		TapJNI::JNI JNI(jenv);
+		TUHelper::PerformOnGameThread([=](){ TapBillboardPtr->HandleAudioStatusChangedEvent(newPlaying); });
+	}
+
+	__attribute__((visibility("default"))) void Java_com_tds_TapBillboardUE_NotifyMarqueeShow (JNIEnv* jenv, jclass thiz, jstring marquee, jstring config) {
+		TapJNI::JNI JNI(jenv);
+		FString Marquee = JNI.GetFStringFromParam(marquee);
+		FString Config = JNI.GetFStringFromParam(config);
+		TUHelper::PerformOnGameThread([=](){ TapBillboardPtr->HandleMarqueeShowEvent(Marquee, Config); });
+	}
+
+	__attribute__((visibility("default"))) void Java_com_tds_TapBillboardUE_NotifyMarqueeClose (JNIEnv* jenv, jclass thiz) {
+		TapJNI::JNI JNI(jenv);
+		TUHelper::PerformOnGameThread([=](){ TapBillboardPtr->HandleMarqueeCloseEvent(); });
+	}
 
 
+#ifdef __cplusplus
+}
+#endif

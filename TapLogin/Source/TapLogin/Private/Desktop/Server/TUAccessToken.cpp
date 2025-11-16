@@ -5,6 +5,13 @@
 #include "Desktop/Server/TULoginStorage.h"
 
 
+bool FTUAccessToken::ContainsScope(const TCHAR* InScope) const
+{
+	TArray<FString> TempScopes;
+	ParseScope(TempScopes);
+	return TempScopes.Contains(InScope);
+}
+
 void FTUAccessToken::SaveToLocal() const
 {
 	TUDataStorage<FTULoginStorage>::SaveStruct(FTULoginStorage::AccessToken, *this, true);

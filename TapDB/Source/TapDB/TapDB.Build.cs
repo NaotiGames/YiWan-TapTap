@@ -2,13 +2,23 @@
 
 using UnrealBuildTool;
 using System.IO;
-using System;
+#if UE_5_0_OR_LATER
+using EpicGames.Core;
+#elif UE_4_26_OR_LATER
+using Tools.DotNETCommon;
+#endif
 
 public class TapDB : ModuleRules
 {
     public TapDB(ReadOnlyTargetRules Target) : base(Target)
     {
         PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+        
+        FileReference fileRef = new FileReference(Path.Combine(PluginDirectory, Name + ".uplugin"));
+        PluginInfo plugin = new PluginInfo(fileRef, PluginType.Project);	
+        PublicDefinitions.Add(Name + "_UE_VERSION_NUMBER=TEXT(\"" + plugin.Descriptor.Version + "\")");
+        PublicDefinitions.Add(Name + "_UE_VERSION=TEXT(\"" + plugin.Descriptor.VersionName + "\")");
+
 
         PrivateIncludePaths.Add(Path.GetFullPath(Path.Combine(ModuleDirectory, "Private")));
         PublicIncludePaths.Add(Path.GetFullPath(Path.Combine(ModuleDirectory, "Public")));
@@ -66,11 +76,14 @@ public class TapDB : ModuleRules
                     "AdSupport",
                     "CoreMotion",
                     "Security",
+                    "SystemConfiguration",
+                    "CoreTelephony"
                 });
 
             PublicWeakFrameworks.AddRange(
                 new string[]{
                     "AppTrackingTransparency",
+                    "AdServices"
                 }
             );
 

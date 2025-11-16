@@ -1,28 +1,39 @@
 #include "AntiAddictionUE.h"
 
 #include "TUDebuger.h"
-#include "Model/Vietnam/AAUVietnamConfigModel.h"
 #include "Server/AAUImpl.h"
-#include "UI/AAUHealthTipWidget.h"
 
-#if !UE_BUILD_SHIPPING
-#include "TUSettings.h"
-#include "UI/Vietnam/AAUVietnamRealNameWidget.h"
-#endif
+#include "TUType.h"
+
 
 AntiAddictionUE::FCallBack AntiAddictionUE::OnCallBack;
 
+
+void AntiAddictionUE::SetTestEnvironment(bool Enable)
+{
+	AAUImpl::Get()->SetTestEnv(Enable);
+}
 
 void AntiAddictionUE::Init(const FAAUConfig& Config) {
 	AAUImpl::Get()->Init(Config);
 }
 
-void AntiAddictionUE::Startup(const FString& UserID) {
+void AntiAddictionUE::Startup(const FString& UserID, bool bIsTapUser) {
 	if (UserID.IsEmpty()) {
 		TUDebuger::ErrorLog("AntiAddiction UserID is Empty");
 		return;
 	}
-	AAUImpl::Get()->Startup(UserID);
+	AAUImpl::Get()->StartupWithTapTap(UserID);
+}
+
+void AntiAddictionUE::StartupWithTapTap(const FString& UserID)
+{
+	if (UserID.IsEmpty())
+	{
+		UE_LOG(LogTap, Warning, TEXT("AntiAddiction UserID is Empty"));
+		return;
+	}
+	AAUImpl::Get()->StartupWithTapTap(UserID);
 }
 
 void AntiAddictionUE::Exit() {
@@ -43,11 +54,11 @@ int AntiAddictionUE::GetRemainingTime() {
 }
 
 void AntiAddictionUE::EnterGame() {
-	AAUImpl::Get()->EnterGame();
+	// AAUImpl::Get()->EnterGame();
 }
 
 void AntiAddictionUE::LeaveGame() {
-	AAUImpl::Get()->LeaveGame();
+	// AAUImpl::Get()->LeaveGame();
 }
 
 void AntiAddictionUE::CheckPayLimit(int Amount,TFunction<void(bool Status)> CallBack,TFunction<void(const FString& Msg)> FailureHandler) {
@@ -62,19 +73,4 @@ void AntiAddictionUE::SubmitPayResult(int Amount, TFunction<void(bool Success)> 
 FString AntiAddictionUE::CurrentToken() {
 	return AAUImpl::Get()->CurrentToken();
 }
-void AntiAddictionUE::Test()
-{
-#if !UE_BUILD_SHIPPING
-	if (GEngine && GEngine->GameViewport)
-	{
-		auto Info = FAAUVietnamConfigModel::GetLocalModel()->ui_config.input_realname_info;
 
-		TSharedRef<SAAURealNameVietnam> RealName = SNew(SAAURealNameVietnam)
-		.Title(FText::FromString(Info.title))
-		.Content(FText::FromString(Info.description))
-		.SubmitText(FText::FromString(Info.button));
-		
-		GEngine->GameViewport->AddViewportWidgetContent(RealName, TUSettings::GetUILevel());
-	}
-#endif
-}

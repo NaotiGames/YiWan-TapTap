@@ -26,11 +26,13 @@ public:
 
 	static void Logout();
 
-	// 获取测试资格
-	static void GetTestQualification(TFunction<void(bool IsQualified, const FTUError& Error)> CallBack);
-
 	// 仅支持移动端
 	// static void QueryMutualList(FString Cursor, int Size, TFunction<void(TSharedPtr<FTULoginFriendResult> ModelPtr, const FTUError& Error)> CallBack);
 
+private:
+	friend class AAUChinaImpl;
+	// 获取测试资格
+	static void GetAntiAddictionCode(const FTUAccessToken& Token, TFunction<void(TSharedPtr<FString> CodePtr, const FTUError& Error)> CallBack);
 
+	static void AppendPermission(const FString& Permission);
 };

@@ -34,6 +34,27 @@ TSharedPtr<ILoginLang> TULoginLanguage::GetCurrentLang()
 	case ELanguageType::ZHTW:
 		CurrentLang = MakeShareable(new LoginLangZHTW);
 		break;
+	case ELanguageType::DE: 
+		CurrentLang = MakeShared<LoginLangDE>(); 
+		break;
+	case ELanguageType::ES: 
+		CurrentLang = MakeShared<LoginLangES>(); 
+		break;
+	case ELanguageType::FR: 
+		CurrentLang = MakeShared<LoginLangFR>(); 
+		break;
+	case ELanguageType::PT: 
+		CurrentLang = MakeShared<LoginLangPT>(); 
+		break;
+	case ELanguageType::RU: 
+		CurrentLang = MakeShared<LoginLangRU>(); 
+		break;
+	case ELanguageType::TR: 
+		CurrentLang = MakeShared<LoginLangTR>(); 
+		break;
+	case ELanguageType::VI: 
+		CurrentLang = MakeShared<LoginLangVI>(); 
+		break;
 	default:
 		if (FTUConfig::Get()->RegionType == ERegionType::CN) {
 			CurrentLang = MakeShareable(new LoginLangCN);

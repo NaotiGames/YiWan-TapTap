@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
-	"Version": 31801001,
-	"VersionName": "3.18.1",
+	"Version": 32909001,
+	"VersionName": "3.29.9",
 	"FriendlyName": "AntiAddiction",
 	"Description": "",
 	"Category": "TapTap",
@@ -24,6 +24,10 @@
 	"Plugins": [
 		{
 			"Name": "TapCommon",
+			"Enabled": true
+		},
+		{
+			"Name": "TapLogin",
 			"Enabled": true
 		}
 	]

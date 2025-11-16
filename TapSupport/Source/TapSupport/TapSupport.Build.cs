@@ -2,13 +2,23 @@
 
 using UnrealBuildTool;
 using System.IO;
-using System;
+#if UE_5_0_OR_LATER
+using EpicGames.Core;
+#elif UE_4_26_OR_LATER
+using Tools.DotNETCommon;
+#endif
 
 public class TapSupport : ModuleRules
 {
 	public TapSupport(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+		
+		FileReference fileRef = new FileReference(Path.Combine(PluginDirectory, Name + ".uplugin"));
+		PluginInfo plugin = new PluginInfo(fileRef, PluginType.Project);	
+		PublicDefinitions.Add(Name + "_UE_VERSION_NUMBER=TEXT(\"" + plugin.Descriptor.Version + "\")");
+		PublicDefinitions.Add(Name + "_UE_VERSION=TEXT(\"" + plugin.Descriptor.VersionName + "\")");
+
 		
 		PublicIncludePaths.AddRange(
 			new string[] {

@@ -17,21 +17,23 @@
 #include "TapBillboardBrowserPopup.h"
 #include "TUSettings.h"
 #include "Components/SizeBox.h"
-#if PLATFORM_IOS
-#include "ButtonHandle.h"
-#endif
+#include "TapBillboardModels.h"
+#include "URLParser.h"
 
-void UTapBillboardBrowserNavigate::LoadUrl(const FString& Url)
+void UTapBillboardBrowserNavigate::LoadUrl(FString Url)
 {
-	BrowserView->LoadURL(Url);
-	State = EBillboardBrowserState::Loading;
+	if (BrowserView)
+	{
+		BrowserView->LoadURL(Url);
+		WebTipUI->ShowWait();
+	}
 }
 
 void UTapBillboardBrowserNavigate::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 	
-	if (const FTapBillboardPtr Billboard = FTapBillboardModule::GetTapBillboardInterface())
+	if (auto Billboard = StaticCastSharedPtr<FTapBillboardPC>(FTapBillboardModule::GetTapBillboardInterface()))
 	{
 		const FString Url = Billboard->GenerateBillboardUrl(FTUConfig::Get()->BillboardConfig->Dimensions);
 		
@@ -46,7 +48,6 @@ void UTapBillboardBrowserNavigate::NativeOnInitialized()
 			.OnLoadCompleted_UObject(this, &UTapBillboardBrowserNavigate::OnLoadCompleted)
 			.OnLoadError_UObject(this, &UTapBillboardBrowserNavigate::OnLoadError);
 
-		State = EBillboardBrowserState::Loading;
 		NativeWidget->SetContent(BrowserView.ToSharedRef());
 
 		if (ITextInputMethodSystem* InputSys = FSlateApplication::Get().GetTextInputMethodSystem())
@@ -55,26 +56,18 @@ void UTapBillboardBrowserNavigate::NativeOnInitialized()
 		}
 
 		CloseButton->OnClicked.BindUObject(this, &UTapBillboardBrowserNavigate::Close);
-		CloseButton->SetVisibility(ESlateVisibility::Hidden);
-		Billboard->GetBadgeDetails(FTapBadgeDetailsResult::CreateUObject(this, &UTapBillboardBrowserNavigate::GetBadgeDetailSuccess),
-			FTapFailed::CreateUObject(this, &UTapBillboardBrowserNavigate::OnGetBadgeDetailFailed));
-	}
+		CloseButton->UpdateButtonTexture(Billboard->GetCurrentAllDetailData().navigate.close_btn_img.url);
 
-#if PLATFORM_WINDOWS || PLATFORM_MAC
-	SizeBox->SetWidthOverride(1000.f);
-	SizeBox->SetHeightOverride(600.f);
-#else
-	SizeBox->SetWidthOverride(1464.f);
-	SizeBox->SetHeightOverride(1208.f);
-#endif
+		WebTipUI->OnRefreshClick.BindUObject(this, &UTapBillboardBrowserNavigate::LoadUrl, Url);
+	}
+	SizeBox->SetWidthOverride(1504.f);
+	SizeBox->SetHeightOverride(864.f);
+
 }
 
 void UTapBillboardBrowserNavigate::NativeConstruct()
 {
 	Super::NativeConstruct();
-#if PLATFORM_IOS
-	BillboardIOSHelper::SetScrollable(false);
-#endif
 }
 
 void UTapBillboardBrowserNavigate::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -118,8 +111,23 @@ bool UTapBillboardBrowserNavigate::OnBeforePopup(FString Url, FString FrameName)
 	case ETapBillboardUrlType::LaunchSystemBrowser:
 		AsyncTask(ENamedThreads::GameThread, [Url]() { TUHelper::LaunchURL(*Url, nullptr, nullptr); });
 		break;
-	case ETapBillboardUrlType::LaunchInnerBrowser:
-		AsyncTask(ENamedThreads::GameThread, [Url]() { UTapBillboardBrowserPopup::OpenUrl(Url); });
+	case ETapBillboardUrlType::LaunchInnerBrowser: {
+		TUCommon::FURL_RFC3986 Parser = TUCommon::FURL_RFC3986();
+		if (!Parser.Parse(Url)) {
+			return true;
+		}
+		FString UrlHost = Parser.GetHost();
+		if (!Parser.Parse(BrowserView->GetUrl())) {
+			return true;
+		}
+		FString WebUrlHost = Parser.GetHost();
+		if (!UrlHost.IsEmpty() && UrlHost == WebUrlHost) {
+			return false;
+		}
+		else {
+			AsyncTask(ENamedThreads::GameThread, [Url]() { UTapBillboardBrowserPopup::OpenUrl(Url); });
+		}
+	}
 		break;
 	default:
 		return false;
@@ -151,8 +159,23 @@ bool UTapBillboardBrowserNavigate::OnBeforeNavigate(const FString& Url, const FW
 	case ETapBillboardUrlType::LaunchSystemBrowser:
 		AsyncTask(ENamedThreads::GameThread, [Url]() { TUHelper::LaunchURL(*Url, nullptr, nullptr); });
 		break;
-	case ETapBillboardUrlType::LaunchInnerBrowser:
-		AsyncTask(ENamedThreads::GameThread, [Url]() { UTapBillboardBrowserPopup::OpenUrl(Url); });
+	case ETapBillboardUrlType::LaunchInnerBrowser: {
+		TUCommon::FURL_RFC3986 Parser = TUCommon::FURL_RFC3986();
+		if (!Parser.Parse(Url)) {
+			return true;
+		}
+		FString UrlHost = Parser.GetHost();
+		if (!Parser.Parse(BrowserView->GetUrl())) {
+			return true;
+		}
+		FString WebUrlHost = Parser.GetHost();
+		if (!UrlHost.IsEmpty() && UrlHost == WebUrlHost) {
+			return false;
+		}
+		else {
+			AsyncTask(ENamedThreads::GameThread, [Url]() { UTapBillboardBrowserPopup::OpenUrl(Url); });
+		}
+	}
 		break;
 	default:
 		return false;
@@ -162,66 +185,50 @@ bool UTapBillboardBrowserNavigate::OnBeforeNavigate(const FString& Url, const FW
 
 void UTapBillboardBrowserNavigate::OnLoadCompleted()
 {
-	if (GetState() == EBillboardBrowserState::Loaded || GetState() == EBillboardBrowserState::LoadFailed)
-	{
-		return;
-	}
 	TWeakObjectPtr<UTapBillboardBrowserNavigate> WeakThis(this);
-	State = EBillboardBrowserState::Loaded;
 	AsyncTask(ENamedThreads::GameThread, [WeakThis]()
 	{
 		if(WeakThis.IsValid())
 		{
+			WeakThis->WebTipUI->ShowLoadSuccess();
 			WeakThis->OnLoadComplete.ExecuteIfBound();
 			WeakThis->OnLoadComplete.Unbind();
 			WeakThis->OnLoadFailed.Unbind();
-			WeakThis->CloseButton->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-			WeakThis->CloseButton->ShowPlatformButtonNextFrame();
-			if (WeakThis->bDisplayWhenRead)
-			{
-				WeakThis->AddToViewport(TUSettings::GetUILevel());
-			}
 		}
 	});
 }
 
 void UTapBillboardBrowserNavigate::OnLoadError()
 {
-	if (GetState() == EBillboardBrowserState::Loaded || GetState() == EBillboardBrowserState::LoadFailed)
-	{
-		return;
-	}
 	TWeakObjectPtr<UTapBillboardBrowserNavigate> WeakThis(this);
-	State = EBillboardBrowserState::LoadFailed;
 	AsyncTask(ENamedThreads::GameThread, [WeakThis]()
 	{
 		if(WeakThis.IsValid())
 		{
+			WeakThis->WebTipUI->ShowLoadFail();
 			WeakThis->OnLoadFailed.ExecuteIfBound(FTUError(-1, TEXT("Net error.")));
 			WeakThis->OnLoadComplete.Unbind();
 			WeakThis->OnLoadFailed.Unbind();
-			WeakThis->CloseButton->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-			WeakThis->CloseButton->ShowPlatformButtonNextFrame();
 		}
 	});
 }
 
 void UTapBillboardBrowserNavigate::Close()
 {
-	OnBillboardBrowserClosed.ExecuteIfBound();
-
 	SetVisibility(ESlateVisibility::Hidden);//接收小红点 暂时不关闭
-
-	CloseButton->ClosePlatformButton();
-
+	
 	BrowserView->BindUObject(TEXT("browser"), this, false);
 	const TCHAR* JSScript = TEXT("if (window.localStorage==null){window.ue.browser.jsnotifyreddot('submit')}else{window.ue.browser.jsnotifyreddot(window.localStorage.getItem('local_red_dot'))}");
 	BrowserView->ExecuteJavascript(JSScript);
-	if (FTapBillboardPtr Billboard = FTapBillboardModule::GetTapBillboardInterface())
+	if (auto Billboard = StaticCastSharedPtr<FTapBillboardPC>(FTapBillboardModule::GetTapBillboardInterface()))
 	{
-		Billboard->Rest_SendTraceEvent(ETapBillboardTemplate::Navigate, {{TEXT("action"), TEXT("click")}, {TEXT("type"), TEXT("close")}});
+		TMap<FString, FString> TraceParams;
+		TraceParams.Add(TEXT("action"), TEXT("click"));
+		TraceParams.Add(TEXT("type"), TEXT("close"));
+		Billboard->Rest_SendTraceEvent(ETapBillboardTemplate::Navigate, TraceParams);
 		Billboard->NavigateBrowser = nullptr;//@TODO
 	}
+	OnBillboardBrowserClosed.ExecuteIfBound();
 }
 
 void UTapBillboardBrowserNavigate::JSNotifyRedDot(const FString& ResultString)
@@ -229,7 +236,7 @@ void UTapBillboardBrowserNavigate::JSNotifyRedDot(const FString& ResultString)
 	FString JsonString;
 	if (ResultString == TEXT("submit"))
 	{
-		if (FTapBillboardPtr Billboard = FTapBillboardModule::GetTapBillboardInterface())
+	if (auto Billboard = StaticCastSharedPtr<FTapBillboardPC>(FTapBillboardModule::GetTapBillboardInterface()))
 		{
 			Billboard->Rest_SubmitReadingRecord();
 		}
@@ -244,7 +251,7 @@ void UTapBillboardBrowserNavigate::JSNotifyRedDot(const FString& ResultString)
 			bool bResult = true;
 			if (JsonObject->TryGetBoolField(FTUConfig::Get()->ClientID, bResult) && !bResult)
 			{
-				if (FTapBillboardPtr Billboard = FTapBillboardModule::GetTapBillboardInterface())
+	if (auto Billboard = StaticCastSharedPtr<FTapBillboardPC>(FTapBillboardModule::GetTapBillboardInterface()))
 				{
 					Billboard->Rest_SubmitReadingRecord();
 				}
@@ -253,16 +260,6 @@ void UTapBillboardBrowserNavigate::JSNotifyRedDot(const FString& ResultString)
 	}
 
 	RemoveFromParent();
-}
-
-void UTapBillboardBrowserNavigate::GetBadgeDetailSuccess(const FBadgeDetails& BadgeDetails)
-{
-	CloseButton->UpdateButtonTexture(BadgeDetails.close_button_img);
-}
-
-void UTapBillboardBrowserNavigate::OnGetBadgeDetailFailed(const FTUError& Error)
-{
-	OnLoadFailed.ExecuteIfBound(Error);
 }
 
 void UTapBillboardBrowserNavigate::UpdateCloseButtonDPIScale(float NewScale)

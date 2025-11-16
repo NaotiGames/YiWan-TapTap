@@ -3,13 +3,30 @@
 #pragma once
 
 #include "Modules/ModuleManager.h"
+#include "Slate/SlateGameResources.h"
+#include "TapCommon.generated.h"
 
-#define TapUECommon_VERSION_NUMBER "31801001"
-#define TapUECommon_VERSION "3.18.1"
+DECLARE_DELEGATE_OneParam(FAsyncDownloadImage, UTexture2D*);
+DECLARE_DELEGATE_OneParam(FAsyncDownloadBrush, TSharedPtr<FSlateDynamicImageBrush>);
 
-class FSlateStyleSet;
+USTRUCT()
+struct FTapCustomMessage
+{
+	GENERATED_BODY()
+	
+	UPROPERTY()
+	FString MessageName;
 
-DECLARE_DELEGATE_OneParam(FAsyncDownloadImage, UTexture2DDynamic*);
+	UPROPERTY()
+	FString MessageContent;
+
+	FTapCustomMessage(){}
+	FTapCustomMessage(FString Name, FString Content)
+	{
+		MessageName = Name;
+		MessageContent = Content;
+	}
+};
 
 class TAPCOMMON_API FTapCommonModule : public IModuleInterface
 {
@@ -19,7 +36,8 @@ public:
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
 
-
+	TSharedPtr<FSlateStyleSet> Style;
+	
 	static inline FTapCommonModule &Get()
 	{
 		return FModuleManager::LoadModuleChecked<FTapCommonModule>("TapCommon");
@@ -78,6 +96,8 @@ public:
 
 	static void AsyncDownloadImage(const FString& Url, const FAsyncDownloadImage& Callback);
 
+	static void AsyncDownloadImage(const FString& Url, const FAsyncDownloadBrush& Callback);
+	
 	static void TapThrobberShowWait();
  
 	static void TapThrobberShowWaitAndToast(const FString& Toast);
@@ -89,4 +109,5 @@ public:
 	static void OnTapThrobberRemoveSelf(const TSharedRef<class STapThrobber>& Throbber);
 
 	TSharedPtr<class STapThrobber> TapThrobber;
+	
 };

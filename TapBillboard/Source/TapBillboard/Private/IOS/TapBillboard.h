@@ -20,7 +20,11 @@ public:
 	
 	virtual void Init(const FTUConfig& InConfig) override;
 
+	virtual ~FTapBillboard() override;
+
 	virtual void OpenPanel(const FSimpleDelegate& OnSuccess, const FTapFailed& OnFailed, const FSimpleDelegate& OnClose) override;
+
+	virtual void ClosePanel() override;
 
 	virtual void OpenSplashPanel(const FSimpleDelegate& OnSuccess, const FTapFailed& OnFailed, const FSimpleDelegate& OnClose) override;
 
@@ -29,4 +33,6 @@ public:
 	virtual void StartFetchMarqueeData() override;
 
 	virtual void StopFetchMarqueeData(bool bCloseNow) override;
+	
+	virtual void GetBadgeDetails(const FTapBadgeDetailsResult& OnSuccess, const FTapFailed& OnFailed) override;
 };

@@ -4,8 +4,9 @@
 
 #include "TapBootstrap.h"
 #include "TapBootstrapModule.h"
-#if PLATFORM_WINDOWS || PLATFORM_MAC
 #include "TapBillboardCommon.h"
+#if PLATFORM_WINDOWS || PLATFORM_MAC
+#include "PC/TapBillboardPC.h"
 #elif PLATFORM_IOS || PLATFORM_ANDROID
 #include "TapBillboard.h"
 #endif
@@ -21,16 +22,15 @@ FTapBillboardPtr FTapBillboardModule::GetTapBillboardInterface()
 
 void FTapBillboardModule::StartupModule()
 {
-	TapBillboard = MakeShared<FTapBillboard, ESPMode::ThreadSafe>();
 #if PLATFORM_WINDOWS || PLATFORM_MAC
-	if (TapBillboard)
-	{
-		TapBillboard->LoadBrowserClass();
-
-		check(FModuleManager::GetModulePtr<FTapBootstrapModule>("TapBootstrap") != nullptr);
-		BootstrapInitHandle = FTapBootstrap::OnBootstrapInit.AddRaw(this, &FTapBillboardModule::OnBootstrapInit);
-	}
+	auto TapBillboardPCPtr = MakeShared<FTapBillboardPC, ESPMode::ThreadSafe>();
+	TapBillboardPCPtr->LoadBrowserClass();
+	TapBillboard = TapBillboardPCPtr;
+#elif PLATFORM_IOS || PLATFORM_ANDROID
+	TapBillboard = MakeShared<FTapBillboard, ESPMode::ThreadSafe>();
 #endif
+	check(FModuleManager::GetModulePtr<FTapBootstrapModule>("TapBootstrap") != nullptr);
+	BootstrapInitHandle = FTapBootstrap::OnBootstrapInit.AddRaw(this, &FTapBillboardModule::OnBootstrapInit);
 }
 
 void FTapBillboardModule::ShutdownModule()
