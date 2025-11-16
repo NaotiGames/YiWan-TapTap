@@ -114,7 +114,7 @@ FString AAUHelper::RemoveHtmlTag(const FString& Content) {
 	FString Result = Content;
 	int Tail = Indexs.Num();
 	while (Tail > 0) {
-		Result.RemoveAt(Indexs[Tail-2], Indexs[Tail-1] - Indexs[Tail-2], true);
+		Result.RemoveAt(Indexs[Tail-2], Indexs[Tail-1] - Indexs[Tail-2], EAllowShrinking::Yes);
 		Tail -= 2;
 	}
 	return Result;

@@ -23,7 +23,7 @@ void AAUChinaSever::Login(const FAAUUser& User, bool useAgeRange, const FString&
 	UseAgeRange = useAgeRange;
 	SetCurrentUser(User, session);
 
-	AAUNet::CheckPlayable(User.UserID, User.AccessTokenV2, session, [=](TSharedPtr<FAAUPlayableModel> ModelPtr,  const FAntiAddictionError& Error) {
+	AAUNet::CheckPlayable(User.UserID, User.AccessTokenV2, session, [this, User, CallBack](TSharedPtr<FAAUPlayableModel> ModelPtr,  const FAntiAddictionError& Error) {
 		if(!ModelPtr.IsValid())
 		{
 			if(Error.httpState == TUHttpResponse::networkError || Error.httpState == TUHttpResponse::serverError)
@@ -238,7 +238,7 @@ void AAUChinaSever::StartCheckTimer() {
 	if (!CurrentUser.IsValid()) {
 		return;
 	}
-	TUSettings::GetGameInstance()->GetTimerManager().SetTimer(CheckTimer, [=]() {
+	TUSettings::GetGameInstance()->GetTimerManager().SetTimer(CheckTimer, [this]() {
 		if (!CurrentUser.IsValid()) {
 			return;
 		}
@@ -251,7 +251,7 @@ void AAUChinaSever::StartCountDownTimer() {
 	if (!CurrentUser.IsValid()) {
 		return;
 	}
-	TUSettings::GetGameInstance()->GetTimerManager().SetTimer(CountDownTimer, [=]() {
+	TUSettings::GetGameInstance()->GetTimerManager().SetTimer(CountDownTimer, [this]() {
 		if (!CurrentUser.IsValid()) {
 			return;
 		}
@@ -282,7 +282,7 @@ void AAUChinaSever::CheckPlayable() {
 	IsUploading = true;
 	
 	
-	AAUNet::CheckPlayable(CurrentUser->UserID, CurrentUser->AccessTokenV2, CurrentSession, [=](TSharedPtr<FAAUPlayableModel> ModelPtr,  const FAntiAddictionError& Error)
+	AAUNet::CheckPlayable(CurrentUser->UserID, CurrentUser->AccessTokenV2, CurrentSession, [this](TSharedPtr<FAAUPlayableModel> ModelPtr,  const FAntiAddictionError& Error)
 	{
 		IsUploading = false;
 		if (!CurrentUser.IsValid()) {

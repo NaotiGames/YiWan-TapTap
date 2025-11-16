@@ -193,7 +193,7 @@ FNavigationReply UTapWebBrowser::NativeOnNavigation(const FGeometry& MyGeometry,
 
 void UTapWebBrowser::HandleOnURLChanged(const FText& NewURL) {
 	TWeakObjectPtr<UTapWebBrowser> WeakThis = this;
-	TUHelper::PerformOnGameThread([=]() {
+	TUHelper::PerformOnGameThread([this, WeakThis, NewURL]() {
 		if (!WeakThis.IsValid()) {
 			return;
 		}

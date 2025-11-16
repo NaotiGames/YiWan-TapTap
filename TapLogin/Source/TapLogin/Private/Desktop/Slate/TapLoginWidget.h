@@ -103,11 +103,11 @@ protected:
 	TSharedPtr<SImage> TipImage;
 
 	FSlateBrush ScanTipBrush;
-	UTexture2D* ScanTipTextureIOS = nullptr;
-	UTexture2D* ScanTipTextureAndroid = nullptr;
+	TObjectPtr<UTexture2D> ScanTipTextureIOS = nullptr;
+	TObjectPtr<UTexture2D> ScanTipTextureAndroid = nullptr;
 	
 	FSlateBrush QrCodeBrush;
-	UTexture2D* QrCodeTexture = nullptr;
+	TObjectPtr<UTexture2D> QrCodeTexture = nullptr;
 	
 	TArray<FString> Permissions;
 #if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 0)

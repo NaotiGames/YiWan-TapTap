@@ -155,8 +155,8 @@ protected:
 	virtual FString GetReferencerName() const override { return TEXT("TapBillboardInterface"); }
 
 	TWeakObjectPtr<UTapBillboardBrowserNavigate> NavigateBrowser;
-	UTapBillboardBrowserSplash* SplashBrowser;
-	UTapBillboardMarquee* MarqueeWidget;
+	TObjectPtr<UTapBillboardBrowserSplash> SplashBrowser;
+	TObjectPtr<UTapBillboardMarquee> MarqueeWidget;
 
 	FAnnouncementStyleData CachedMarqueeStyle;
 	FBadgeDetails CachedBadgeDetails;

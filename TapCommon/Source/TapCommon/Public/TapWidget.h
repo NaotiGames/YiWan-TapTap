@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Misc/EngineVersionComparison.h"
 #include "TapWidget.generated.h"
 
 
@@ -12,7 +13,7 @@ class TAPCOMMON_API UTapWidget : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-#if ENGINE_MAJOR_VERSION == 4
+#if !UE_VERSION_NEWER_THAN(5, 0, 0)
 	virtual void AddToScreen(ULocalPlayer* LocalPlayer, int32 ZOrder) override;
 
 	virtual void RemoveFromParent() override;

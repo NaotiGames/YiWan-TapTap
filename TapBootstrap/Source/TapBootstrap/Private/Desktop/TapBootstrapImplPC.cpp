@@ -54,7 +54,7 @@ void FTapBootstrapImplPC::QueryTapFriendsLeaderBoard(const FString& Name, int Fr
 				FTUError Error;
 				TSharedPtr<FJsonObject> JsonObject = TUJsonHelper::GetJsonObject(response->contentString);
 				const TArray<TSharedPtr<FJsonValue>>* OutArray;
-				if (JsonObject->TryGetArrayField("results", OutArray)) {
+				if (JsonObject->TryGetArrayField(TEXT("results"), OutArray)) {
 					for (auto JsonValue : *OutArray) {
 						const TSharedPtr<FJsonObject>* ObjectP = nullptr;
 						if (!JsonValue->TryGetObject(ObjectP)) {
@@ -63,11 +63,11 @@ void FTapBootstrapImplPC::QueryTapFriendsLeaderBoard(const FString& Name, int Fr
 							break;
 						}
 						FTDSLeaderBoardRanking Ranking;
-						(*ObjectP)->TryGetStringField("statisticName", Ranking.StatisticName);
-						(*ObjectP)->TryGetNumberField("statisticValue", Ranking.StatisticValue);
-						(*ObjectP)->TryGetNumberField("rank", Ranking.Rank);
+						(*ObjectP)->TryGetStringField(TEXT("statisticName"), Ranking.StatisticName);
+						(*ObjectP)->TryGetNumberField(TEXT("statisticValue"), Ranking.StatisticValue);
+						(*ObjectP)->TryGetNumberField(TEXT("rank"), Ranking.Rank);
 						const TSharedPtr<FJsonObject>* UserObject;
-						if ((*ObjectP)->TryGetObjectField("user", UserObject)) {
+						if ((*ObjectP)->TryGetObjectField(TEXT("user"), UserObject)) {
 							Ranking.User = StaticCastSharedPtr<FTDSUser>(MakeLCObject(*UserObject, "_User"));
 						}
 						Rankings.Add(Ranking);

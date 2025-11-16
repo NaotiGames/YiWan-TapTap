@@ -5,6 +5,8 @@
 #include "TUJsonHelper.h"
 #include "TUMobileBridge.h"
 
+#include "Policies/CondensedJsonPrintPolicy.h"
+
 #if PLATFORM_IOS
 #pragma clang diagnostic ignored "-Wobjc-property-no-attribute"
 #pragma clang diagnostic ignored "-Wundef"

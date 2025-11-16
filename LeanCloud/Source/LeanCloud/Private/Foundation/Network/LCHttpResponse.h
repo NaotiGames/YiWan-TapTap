@@ -38,7 +38,7 @@ public:
 	}
 
 	void PerformBoolDelegateByResponse(const FLeanCloudBoolResultDelegate& CallBack) const {
-		FLCHelper::PerformOnGameThread([=]() {
+		FLCHelper::PerformOnGameThread([this, CallBack]() {
 			CallBack.ExecuteIfBound(bIsSuccess(), Error);
 		});
 	}

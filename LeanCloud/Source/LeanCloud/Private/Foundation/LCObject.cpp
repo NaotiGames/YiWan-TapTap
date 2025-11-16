@@ -105,8 +105,7 @@ void FLCObject::Increase(const FString& Key, double Value) {
 }
 
 void FLCObject::Add(const FString& Key, const FLCValue& Value, bool bIsUnique) {
-	TArray<FString> s;
-	s.Contains("");
+
 }
 
 void FLCObject::Remove(const FString& Key, const FLCValue& Value) {

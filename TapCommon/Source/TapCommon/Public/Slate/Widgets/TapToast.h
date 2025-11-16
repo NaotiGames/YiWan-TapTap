@@ -63,7 +63,7 @@ protected:
 	TSharedPtr<STextBlock> MessageTextBlock;
 	
 	FSlateBrush Brush;
-	UMaterialInstanceDynamic* GCMat = nullptr;
+	TObjectPtr<UMaterialInstanceDynamic> GCMat = nullptr;
 
 	FCurveSequence Anim;
 	TSharedPtr<FActiveTimerHandle> ToastTimer;

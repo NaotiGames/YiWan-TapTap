@@ -51,7 +51,7 @@ int64 GenerateWrapperResponse(const TSharedPtr<TUHttpResponse>& Response, TShare
 	const auto JsonObject = TUJsonHelper::GetJsonObject(Response->contentString);
 	bool Success = false;
 	const TSharedPtr<FJsonObject>* DataJsonObject = nullptr;
-	if (JsonObject.IsValid() && JsonObject->TryGetBoolField("success", Success) && JsonObject->TryGetObjectField("data", DataJsonObject))
+	if (JsonObject.IsValid() && JsonObject->TryGetBoolField(TEXT("success"), Success) && JsonObject->TryGetObjectField(TEXT("data"), DataJsonObject))
 	{
 		if (Success && Response->state == TUHttpResponse::success)
 		{
@@ -66,7 +66,7 @@ int64 GenerateWrapperResponse(const TSharedPtr<TUHttpResponse>& Response, TShare
 			}
 		}
 		int64 timestamp = 0;
-		JsonObject->TryGetNumberField("now", timestamp);
+		JsonObject->TryGetNumberField(TEXT("now"), timestamp);
 		return timestamp;
 	}
 	return 0;
@@ -222,7 +222,7 @@ void AAUNet::ChinaManualVerify(const FString& UserID, const FString& Name, const
 	request->Parameters->SetStringField("name", Name);
 	request->Parameters->SetStringField("id_card", CardID);
 	
-	request->onCompleted.BindLambda([=](TSharedPtr<TUHttpResponse> response) {
+	request->onCompleted.BindLambda([CallBack](TSharedPtr<TUHttpResponse> response) {
 		FAntiAddictionError Error;
 		TSharedPtr<FAAURealNameResultModel> ModelPtr = nullptr;
 		GenerateWrapperResponse(response, ModelPtr, Error);

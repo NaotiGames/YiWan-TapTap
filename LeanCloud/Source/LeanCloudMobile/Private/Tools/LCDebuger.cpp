@@ -1,4 +1,5 @@
 #include "Tools/LCDebuger.h"
+#include "Engine/Engine.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LeanCloudLog, Log, All);
 

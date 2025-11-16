@@ -40,7 +40,9 @@ void IOSBridge::CallHandler(FString command)
 - (void)onResult:(NSString *)result
 {
     FString resultMsg = UTF8_TO_TCHAR([result UTF8String]);
-    FTapCommonModule::OnBridgeCallback.Broadcast(resultMsg);
-	TUMobileBridge::DoCallBack(resultMsg);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        FTapCommonModule::OnBridgeCallback.Broadcast(resultMsg);
+        TUMobileBridge::DoCallBack(resultMsg);
+    });
 }
 @end

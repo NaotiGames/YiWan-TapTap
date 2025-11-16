@@ -160,8 +160,8 @@ protected:
 	TArray<FAchievementTap> Achievements;
 	TArray<FAchievementDescTap> AchievementDescriptions;
 
-	UAchievementUI* AchievementUI;
-	UReachAchievementTipsUI* ReachTipsUI;
+	TObjectPtr<UAchievementUI> AchievementUI;
+	TObjectPtr<UReachAchievementTipsUI> ReachTipsUI;
 
 	TSoftClassPtr<UAchievementUI> AchievementWidgetClass_PC;
 	TSoftClassPtr<UAchievementUI> AchievementWidgetClass_H_P;
@@ -174,7 +174,7 @@ protected:
 	FDownloadIconStatus DownloadCallback;
 
 	FText ApplicationName;
-	UTexture2D* ApplicationIconTexture;
+	TObjectPtr<UTexture2D> ApplicationIconTexture;
 
 	FDelegateHandle OrientationChangeHandle;
 };

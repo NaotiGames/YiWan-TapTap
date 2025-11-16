@@ -2,8 +2,9 @@
 
 
 #include "TapPlatformButton.h"
-#include "Components/Button.h"
 #include "TapUrlResourceLoader.h"
+#include "Components/Button.h"
+#include "Engine/Texture2D.h"
 
 void UTapPlatformButton::UpdateButtonTexture(const FString& Url)
 {

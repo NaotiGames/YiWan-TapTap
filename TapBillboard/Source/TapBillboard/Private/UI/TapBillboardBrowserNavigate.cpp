@@ -19,6 +19,9 @@
 #include "Components/SizeBox.h"
 #include "TapBillboardModels.h"
 #include "URLParser.h"
+#include "Engine/Engine.h"
+#include "Misc/Base64.h"
+
 
 void UTapBillboardBrowserNavigate::LoadUrl(FString Url)
 {

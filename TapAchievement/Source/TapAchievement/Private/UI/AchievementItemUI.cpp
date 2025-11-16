@@ -3,6 +3,7 @@
 
 #include "AchievementItemUI.h"
 
+#include "UI/AchievementDetailUI.h"
 #include "TapAchievementCommon.h"
 #include "TapAchievementModule.h"
 #include "TapAchievementTypes.h"
@@ -12,8 +13,9 @@
 #include "Components/Image.h"
 #include "Components/PanelWidget.h"
 #include "Components/TextBlock.h"
+#include "Engine/Texture2D.h"
 #include "Engine/Texture2DDynamic.h"
-#include "UI/AchievementDetailUI.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 
 void UAchievementItemUI::UpdateDetailUI(const FAchievementDescTap& Description, const FAchievementTap& InAchievement)

@@ -7,6 +7,8 @@
 #include "TUDeviceInfo.h"
 #include "TUMobileBridge.h"
 
+#include "Policies/CondensedJsonPrintPolicy.h"
+
 #if PLATFORM_IOS
 #include "IOSHelper.h"
 #import <LeanCloudObjc/LeanCloudObjc.h>
@@ -16,16 +18,16 @@
 
 #endif
 
-#define BOOTSTRAP_SERVICE "TapBootstrapService"
-#define LOGIN_RESULT_CODE_KEY "loginCallbackCode"
-#define USER_STATUS_CODE_KEY "userStatusCallbackCode"
-#define BRIDGE_DATA_KEY "wrapper"
+#define BOOTSTRAP_SERVICE TEXT("TapBootstrapService")
+#define LOGIN_RESULT_CODE_KEY TEXT("loginCallbackCode")
+#define USER_STATUS_CODE_KEY TEXT("userStatusCallbackCode")
+#define BRIDGE_DATA_KEY TEXT("wrapper")
 
 #define CALLBACK_SUCCESS_CODE 0
 
-FString FTDSUser::KeyNickName = "nickname";
-FString FTDSUser::KeyAvatar = "avatar";
-FString FTDSUser::KeyShortID = "shortId";
+FString FTDSUser::KeyNickName = TEXT("nickname");
+FString FTDSUser::KeyAvatar = TEXT("avatar");
+FString FTDSUser::KeyShortID = TEXT("shortId");
 
 TSharedPtr<FJsonObject> GetJsonObject(const TSharedPtr<FLCObject>& ObjectPtr) {
 	if (!ObjectPtr.IsValid()) {
@@ -55,7 +57,7 @@ TSharedPtr<FLCObject> MakeLCObject(const TSharedPtr<FJsonObject>& ObjectPtr) {
 	return MakeShared<FLCObject>(*object);
 #else
 	FString ClassName;
-	if (!ObjectPtr->TryGetStringField("className", ClassName)) {
+	if (!ObjectPtr->TryGetStringField(TEXT("className"), ClassName)) {
 		return nullptr;
 	}
 	auto ServerData = LC_StringToMap(TUJsonHelper::GetJsonString(ObjectPtr));
@@ -68,7 +70,7 @@ TSharedPtr<FLCObject> MakeLCObject(const TSharedPtr<FJsonObject>& ObjectPtr, con
 		return nullptr;
 	}
 	TSharedPtr<FJsonObject> mObjectPtr = ObjectPtr;
-	mObjectPtr->SetStringField("className", InClassName);
+	mObjectPtr->SetStringField(TEXT("className"), InClassName);
 	return MakeLCObject(mObjectPtr);
 }
 
@@ -156,7 +158,7 @@ TSharedPtr<FTDSUser> FTDSUser::GetCurrentUser() {
 
 void FTDSUser::Logout() {
 #if PLATFORM_IOS || PLATFORM_ANDROID
-	TUMobileBridge::AsyncPerform(BOOTSTRAP_SERVICE,"logout","");
+	TUMobileBridge::AsyncPerform(BOOTSTRAP_SERVICE, TEXT("logout"), TEXT(""));
 #else	
 	FLCUser::LogOut();
 	TapUELogin::Logout();
@@ -168,7 +170,7 @@ void FTDSUser::LoginAnonymously(const FCallBackDelegate& CallBack) {
 	FLeanCloudUserDelegate Delegate;
 	LoginWithUserCallBack(CallBack, Delegate);
 #if PLATFORM_IOS || PLATFORM_ANDROID
-	TUMobileBridge::AsyncPerform(BOOTSTRAP_SERVICE, "loginAnonymously","", [=](const FString& ResultStr)
+	TUMobileBridge::AsyncPerform(BOOTSTRAP_SERVICE, TEXT("loginAnonymously"), TEXT(""), [Delegate](const FString& ResultStr)
 	{
 		const TSharedPtr<FJsonObject> JsonObject = TUJsonHelper::GetJsonObject(ResultStr);
 		if (JsonObject.IsValid())
@@ -182,12 +184,12 @@ void FTDSUser::LoginAnonymously(const FCallBackDelegate& CallBack) {
 			{
 				const FString Wrapper = JsonObject->GetStringField(BRIDGE_DATA_KEY);
 				const TSharedPtr<FJsonObject> DataObject = TUJsonHelper::GetJsonObject(Wrapper);
-				const FString Error_description = DataObject->GetStringField("error_description");
+				const FString Error_description = DataObject->GetStringField(TEXT("error_description"));
 				Delegate.ExecuteIfBound(nullptr, FLCError(FTUError::UNDEFINED, Error_description));
 			}
 		}else
 		{
-			Delegate.ExecuteIfBound(nullptr, FLCError(FTUError::BRIDGE_EXECUTE, "unknown error:invalid data"));
+			Delegate.ExecuteIfBound(nullptr, FLCError(FTUError::BRIDGE_EXECUTE, TEXT("unknown error:invalid data")));
 		}
 		
 	});
@@ -213,7 +215,7 @@ void FTDSUser::LoginWithTapTap(const TArray<FString>& Permissions, const FCallBa
 			AuthData->SetStringField(TEXT("unionid"), TapProfile->unionid);
 			AuthData->SetStringField(TEXT("name"), TapProfile->name);
 			AuthData->SetStringField(TEXT("avatar"), TapProfile->avatar);
-			LoginWithAuthData("taptap", AuthData, CallBack);
+			LoginWithAuthData(TEXT("taptap"), AuthData, CallBack);
 		}
 		break;
 		case TUAuthResult::Cancel:
@@ -240,7 +242,7 @@ void FTDSUser::BecomeWithSessionToken(const FString& SessionToken, const FCallBa
 	Writer->WriteValue(TEXT("loginWithToken"), SessionToken);
 	Writer->WriteObjectEnd();
 	Writer->Close();
-	TUMobileBridge::AsyncPerform(BOOTSTRAP_SERVICE, "loginWithToken",JsonOutString, [=](const FString& ResultStr)
+	TUMobileBridge::AsyncPerform(BOOTSTRAP_SERVICE, TEXT("loginWithToken"), JsonOutString, [CallBack](const FString& ResultStr)
 	{
 		const TSharedPtr<FJsonObject> JsonObject = TUJsonHelper::GetJsonObject(ResultStr);
 		if (JsonObject.IsValid())
@@ -254,12 +256,12 @@ void FTDSUser::BecomeWithSessionToken(const FString& SessionToken, const FCallBa
 			{
 				const FString Wrapper = JsonObject->GetStringField(BRIDGE_DATA_KEY);
 				const TSharedPtr<FJsonObject> DataObject = TUJsonHelper::GetJsonObject(Wrapper);
-				const FString Error_description = DataObject->GetStringField("error_description");
+				const FString Error_description = DataObject->GetStringField(TEXT("error_description"));
 				CallBack.ExecuteIfBound(nullptr, FTUError(FTUError::UNDEFINED, Error_description));
 			}
 		}else
 		{
-			CallBack.ExecuteIfBound(nullptr, FTUError(FTUError::BRIDGE_EXECUTE, "unknown error:invalid data"));
+			CallBack.ExecuteIfBound(nullptr, FTUError(FTUError::BRIDGE_EXECUTE, TEXT("unknown error:invalid data")));
 		}
 		
 	});
@@ -289,7 +291,7 @@ void FTDSUser::LoginWithAuthData(const FString& Platform, TSharedPtr<FJsonObject
 	DataWriter->WriteValue(TEXT("authData"), AuthDataString);
 	DataWriter->WriteObjectEnd();
 	DataWriter->Close();
-	TUMobileBridge::AsyncPerform(BOOTSTRAP_SERVICE, "loginWithAuthData",JsonOutString, [=](const FString& ResultStr)
+	TUMobileBridge::AsyncPerform(BOOTSTRAP_SERVICE, TEXT("loginWithAuthData"), JsonOutString, [Delegate](const FString& ResultStr)
 	{
 		const TSharedPtr<FJsonObject> JsonObject = TUJsonHelper::GetJsonObject(ResultStr);
 		if (JsonObject.IsValid())
@@ -303,12 +305,12 @@ void FTDSUser::LoginWithAuthData(const FString& Platform, TSharedPtr<FJsonObject
 			{
 				const FString Wrapper = JsonObject->GetStringField(BRIDGE_DATA_KEY);
 				const TSharedPtr<FJsonObject> DataObject = TUJsonHelper::GetJsonObject(Wrapper);
-				const FString Error_description = DataObject->GetStringField("error_description");
+				const FString Error_description = DataObject->GetStringField(TEXT("error_description"));
 				Delegate.ExecuteIfBound(nullptr, FLCError(FTUError::UNDEFINED, Error_description));
 			}
 		}else
 		{
-			Delegate.ExecuteIfBound(nullptr, FLCError(FTUError::BRIDGE_EXECUTE, "unknown error:invalid data"));
+			Delegate.ExecuteIfBound(nullptr, FLCError(FTUError::BRIDGE_EXECUTE, TEXT("unknown error:invalid data")));
 		}
 		
 	});
@@ -347,7 +349,7 @@ void FTDSUser::AssociateWithAuthData(const FString& Platform, TSharedPtr<FJsonOb
 	DataWriter->WriteValue(TEXT("authData"), AuthDataString);
 	DataWriter->WriteObjectEnd();
 	DataWriter->Close();
-	TUMobileBridge::AsyncPerform(BOOTSTRAP_SERVICE, "associateWithAuthData",JsonOutString, [=](const FString& ResultStr)
+	TUMobileBridge::AsyncPerform(BOOTSTRAP_SERVICE, TEXT("associateWithAuthData"), JsonOutString, [this, Delegate](const FString& ResultStr)
 	{
 		const TSharedPtr<FJsonObject> JsonObject = TUJsonHelper::GetJsonObject(ResultStr);
 		if (JsonObject.IsValid())
@@ -360,12 +362,12 @@ void FTDSUser::AssociateWithAuthData(const FString& Platform, TSharedPtr<FJsonOb
 			{
 				const FString Wrapper = JsonObject->GetStringField(BRIDGE_DATA_KEY);
 				const TSharedPtr<FJsonObject> DataObject = TUJsonHelper::GetJsonObject(Wrapper);
-				const FString Error_description = DataObject->GetStringField("error_description");
+				const FString Error_description = DataObject->GetStringField(TEXT("error_description"));
 				Delegate.ExecuteIfBound(false, FLCError(FTUError::BIND_ERROR, Error_description));
 			}
 		}else
 		{
-			Delegate.ExecuteIfBound(false, FLCError(FTUError::BRIDGE_EXECUTE, "unknown error:invalid data"));
+			Delegate.ExecuteIfBound(false, FLCError(FTUError::BRIDGE_EXECUTE, TEXT("unknown error:invalid data")));
 		}
 		
 	});
@@ -393,7 +395,7 @@ void FTDSUser::DisassociateAuthData(const FString& Platform, const FCallBackDele
 	DataWriter->WriteValue(TEXT("disassociateWithPlatform"), Platform);
 	DataWriter->WriteObjectEnd();
 	DataWriter->Close();
-	TUMobileBridge::AsyncPerform(BOOTSTRAP_SERVICE, "disassociateWithPlatform",JsonOutString, [=](const FString& ResultStr)
+	TUMobileBridge::AsyncPerform(BOOTSTRAP_SERVICE, TEXT("disassociateWithPlatform"), JsonOutString, [this, Delegate](const FString& ResultStr)
 	{
 		const TSharedPtr<FJsonObject> JsonObject = TUJsonHelper::GetJsonObject(ResultStr);
 		if (JsonObject.IsValid())
@@ -406,12 +408,12 @@ void FTDSUser::DisassociateAuthData(const FString& Platform, const FCallBackDele
 			{
 				const FString Wrapper = JsonObject->GetStringField(BRIDGE_DATA_KEY);
 				const TSharedPtr<FJsonObject> DataObject = TUJsonHelper::GetJsonObject(Wrapper);
-				const FString Error_description = DataObject->GetStringField("error_description");
+				const FString Error_description = DataObject->GetStringField(TEXT("error_description"));
 				Delegate.ExecuteIfBound(false, FLCError(FTUError::UNDEFINED, Error_description));
 			}
 		}else
 		{
-			Delegate.ExecuteIfBound(false, FLCError(FTUError::BRIDGE_EXECUTE, "unknown error:invalid data"));
+			Delegate.ExecuteIfBound(false, FLCError(FTUError::BRIDGE_EXECUTE, TEXT("unknown error:invalid data")));
 		}
 		
 	});
@@ -431,7 +433,7 @@ void FTDSUser::RetrieveShortToken(const FStringSignature& OnSuccess, const FTUEr
 
 
 void FTDSUser::LoginWithUserCallBack(const FCallBackDelegate& CallBack, FLeanCloudUserDelegate& LCCallBack) {
-	LCCallBack = FLeanCloudUserDelegate::CreateLambda([=](TSharedPtr<FLCUser> UserPtr, const FLCError& Error) {
+	LCCallBack = FLeanCloudUserDelegate::CreateLambda([CallBack](TSharedPtr<FLCUser> UserPtr, const FLCError& Error) {
 		if (UserPtr.IsValid()) {
 			CallBack.ExecuteIfBound(StaticCastSharedPtr<FTDSUser>(UserPtr), FTUError());
 		}
@@ -446,7 +448,7 @@ void FTDSUser::LoginWithUserCallBack(const FCallBackDelegate& CallBack, FLeanClo
 
 void FTDSUser::LoginWithBoolCallBack(const FCallBackDelegate& CallBack, FLeanCloudBoolResultDelegate& LCCallBack,
                                      const TSharedPtr<FTDSUser>& InUserPtr) {
-	LCCallBack = FLeanCloudBoolResultDelegate::CreateLambda([=](bool bIsSuccess, const FLCError& Error) {
+	LCCallBack = FLeanCloudBoolResultDelegate::CreateLambda([CallBack, InUserPtr](bool bIsSuccess, const FLCError& Error) {
 		if (bIsSuccess) {
 			CallBack.ExecuteIfBound(InUserPtr, FTUError());
 		}

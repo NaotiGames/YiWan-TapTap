@@ -216,16 +216,16 @@ void  TULoginPCImpl::CheckAndRefreshToken() {
 	auto AccessTokenPtr = GetAccessToken();
 	if (AccessTokenPtr.IsValid()){
 		TUDebuger::DisplayLog("CheckAndRefreshToken has local token");
-		TULoginNet::RefreshToken(*AccessTokenPtr.Get()->access_token, [=](TSharedPtr<FTUAccessToken> Model, FTULoginError Error) {
+		TULoginNet::RefreshToken(*AccessTokenPtr.Get()->access_token, [this](TSharedPtr<FTUAccessToken> Model, FTULoginError Error) {
 			if (Model.IsValid()) {
-				TUDebuger::DisplayLog("CheckAndRefreshToken refresh token success ");
+				TUDebuger::DisplayLog(TEXT("CheckAndRefreshToken refresh token success "));
 				if(IsCacheUserSameWithTapClient)
 				{
-					TUDebuger::DisplayLog("CheckAndRefreshToken refresh token And save data");
+					TUDebuger::DisplayLog(TEXT("CheckAndRefreshToken refresh token And save data"));
 					Model->SaveToLocal();
 					auto FTULoginProfileModelPtr = GetProfile();
 					if(!FTULoginProfileModelPtr.IsValid()){
-						FetchProfile([=](TSharedPtr<FTULoginProfileModel> ModelPtr, const FTUError& Error)
+						FetchProfile([this](TSharedPtr<FTULoginProfileModel> ModelPtr, const FTUError& Error)
 						{
 							if(ModelPtr.IsValid() && IsCacheUserSameWithTapClient)
 							{
@@ -247,7 +247,7 @@ void  TULoginPCImpl::CheckAndRefreshToken() {
 
 void TULoginPCImpl::GetAntiAddictionCode(const FTUAccessToken& Token,
 	TFunction<void(TSharedPtr<FString> codePtr, const FTUError& Error)> CallBack) {
-	TULoginNet::RequestRealNameCode(Token, [=](TSharedPtr<FTUAntiAddictionModel> Model, FTULoginError Error) {
+	TULoginNet::RequestRealNameCode(Token, [this, CallBack](TSharedPtr<FTUAntiAddictionModel> Model, FTULoginError Error) {
 		if (!CallBack) {
 			return;
 		}

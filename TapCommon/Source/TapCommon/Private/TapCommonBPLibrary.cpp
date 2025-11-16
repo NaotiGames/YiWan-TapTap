@@ -169,7 +169,7 @@ void UTapCommonBPLibrary::OnBridgeCallback(const FString &result)
         TSharedPtr<FJsonObject> taptapInstallRoot;
         bool bSuccessful = FJsonSerializer::Deserialize(taptapInstallReader, taptapInstallRoot);
         if(bSuccessful){
-            FTapCommonModule::OnTapTapInstalled.Broadcast(taptapInstallRoot->GetBoolField("isTapTapInstalled"));
+            FTapCommonModule::OnTapTapInstalled.Broadcast(taptapInstallRoot->GetBoolField(TEXT("isTapTapInstalled")));
             return;
         }
         FTapCommonModule::OnTapTapInstalled.Broadcast(false);
@@ -185,7 +185,7 @@ void UTapCommonBPLibrary::OnBridgeCallback(const FString &result)
         TSharedPtr<FJsonObject> tapIOInstallRoot;
         bool bSuccessful = FJsonSerializer::Deserialize(tapIOInstallReader, tapIOInstallRoot);
         if(bSuccessful){
-            FTapCommonModule::OnTapGlobalInstalled.Broadcast(tapIOInstallRoot->GetBoolField("isTapGlobalInstalled"));
+            FTapCommonModule::OnTapGlobalInstalled.Broadcast(tapIOInstallRoot->GetBoolField(TEXT("isTapGlobalInstalled")));
             return;
         }
         FTapCommonModule::OnTapGlobalInstalled.Broadcast(false);
@@ -201,7 +201,7 @@ void UTapCommonBPLibrary::OnBridgeCallback(const FString &result)
         TSharedPtr<FJsonObject> updateTapRoot;
         bool bSuccessful = FJsonSerializer::Deserialize(updateTapReader, updateTapRoot);
         if(bSuccessful){
-            FTapCommonModule::OnUpdateGameInTapTap.Broadcast(updateTapRoot->GetBoolField("updateGameInTapTap"));
+            FTapCommonModule::OnUpdateGameInTapTap.Broadcast(updateTapRoot->GetBoolField(TEXT("updateGameInTapTap")));
             return;
         }
         FTapCommonModule::OnUpdateGameInTapTap.Broadcast(false);
@@ -217,7 +217,7 @@ void UTapCommonBPLibrary::OnBridgeCallback(const FString &result)
         TSharedPtr<FJsonObject> updateTapIORoot;
         bool bSuccessful = FJsonSerializer::Deserialize(updateTapIOReader, updateTapIORoot);
         if(bSuccessful){
-            FTapCommonModule::OnUpdateGameInTapGlobal.Broadcast(updateTapIORoot->GetBoolField("updateGameInTapGlobal"));
+            FTapCommonModule::OnUpdateGameInTapGlobal.Broadcast(updateTapIORoot->GetBoolField(TEXT("updateGameInTapGlobal")));
             return;
         }
         FTapCommonModule::OnUpdateGameInTapGlobal.Broadcast(false);
@@ -233,7 +233,7 @@ void UTapCommonBPLibrary::OnBridgeCallback(const FString &result)
         TSharedPtr<FJsonObject> openTapRoot;
         bool bSuccessful = FJsonSerializer::Deserialize(openTapReader, openTapRoot);
         if(bSuccessful){
-            FTapCommonModule::OnOpenReviewInTapTap.Broadcast(openTapRoot->GetBoolField("openReviewInTapTap"));
+            FTapCommonModule::OnOpenReviewInTapTap.Broadcast(openTapRoot->GetBoolField(TEXT("openReviewInTapTap")));
             return;
         }
         FTapCommonModule::OnOpenReviewInTapTap.Broadcast(false);
@@ -249,7 +249,7 @@ void UTapCommonBPLibrary::OnBridgeCallback(const FString &result)
         TSharedPtr<FJsonObject> openTapIORoot;
         bool bSuccessful = FJsonSerializer::Deserialize(openTapIOReader, openTapIORoot);
         if(bSuccessful){
-            FTapCommonModule::OnOpenReviewInTapGlobal.Broadcast(openTapIORoot->GetBoolField("openReviewInTapGlobal"));
+            FTapCommonModule::OnOpenReviewInTapGlobal.Broadcast(openTapIORoot->GetBoolField(TEXT("openReviewInTapGlobal")));
             return;
         }
         FTapCommonModule::OnOpenReviewInTapGlobal.Broadcast(false);

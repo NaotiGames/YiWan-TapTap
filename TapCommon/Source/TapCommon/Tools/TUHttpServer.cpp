@@ -56,9 +56,8 @@ FString TUHttpServer::RegisterNewRoute(const FString& Path,
 	if (!CallBack) {
 		return "";
 	}
-	auto Handle = Server->HttpRouter->BindRoute(FHttpPath("/" + Path), EHttpServerRequestVerbs::VERB_GET | EHttpServerRequestVerbs::VERB_POST,
-		[=](const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete)
-	{
+	
+	FHttpRequestHandler RequestHandler = FHttpRequestHandler::CreateLambda([CallBack](const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete)	{
 		PrintServerRequest(Request);
 			if (CallBack)
 			{
@@ -67,6 +66,8 @@ FString TUHttpServer::RegisterNewRoute(const FString& Path,
 			UE_LOG(LogTap, Warning, TEXT("RegisterNewRoute, Handle Http, Invalid Callback."));
 			return false;
 	});
+
+	auto Handle = Server->HttpRouter->BindRoute(FHttpPath("/" + Path), EHttpServerRequestVerbs::VERB_GET | EHttpServerRequestVerbs::VERB_POST, RequestHandler);
 	if (!Handle.IsValid()) {
 		TUDebuger::ErrorLog(FString::Printf(TEXT("unable bind route: %s"), *Path));
 		return "";

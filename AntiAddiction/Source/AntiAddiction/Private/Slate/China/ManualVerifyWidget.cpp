@@ -35,7 +35,7 @@ public:
 	SLATE_ARGUMENT( EOrientation, Orientation )
 	SLATE_ARGUMENT( EVisibility, ScrollBarVisibility )
 	SLATE_ARGUMENT(EAllowOverscroll, AllowOverscroll);
-	SLATE_SUPPORTS_SLOT( FSlot )
+	SLATE_SLOT_ARGUMENT( FSlot, Slots )
 	SLATE_END_ARGS()
 
 	void Construct( const FArguments& InArgs )
@@ -46,10 +46,9 @@ public:
 			.ScrollBarVisibility(InArgs._ScrollBarVisibility)
 			.AllowOverscroll(InArgs._AllowOverscroll));
 
-		const int32 NumSlots = InArgs.Slots.Num();
-		for ( int32 SlotIndex = 0; SlotIndex < NumSlots; ++SlotIndex )
+		for (int32 SlotIndex = 0; SlotIndex < InArgs._Slots.Num(); ++SlotIndex)
 		{
-			ScrollPanel->Children.Add(InArgs.Slots[SlotIndex]);
+			ScrollPanel->Children.AddSlot(MoveTemp(const_cast<SScrollBox::FSlot::FSlotArguments&>(InArgs._Slots[SlotIndex])));
 		}
 	}
 

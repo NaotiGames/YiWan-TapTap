@@ -3,6 +3,7 @@
 #include "TUJsonHelper.h"
 #include "TUMobileBridge.h"
 
+#include "Policies/CondensedJsonPrintPolicy.h"
 
 
 #define TapSupportService "TDSTapSupportService"

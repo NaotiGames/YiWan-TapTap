@@ -89,29 +89,29 @@ void TUWebViewJavascriptBridge::FlushMessageQueue(const FString& MessageQueueStr
 	TSharedRef<TJsonReader<> > JsonReader = TJsonReaderFactory<>::Create(MessageQueueString);
 	if (!FJsonSerializer::Deserialize(JsonReader, JsonArray))
 	{
-		TUDebuger::WarningLog("WebViewJavascriptBridge: WARNING: MessageQueueString Parse Error.");
+		TUDebuger::WarningLog(TEXT("WebViewJavascriptBridge: WARNING: MessageQueueString Parse Error."));
 		return ;
 	}
 	for (auto JsonValue : JsonArray) {
 		const TSharedPtr<FJsonObject>* JsonObject= nullptr;
 		if (!JsonValue->TryGetObject(JsonObject)) {
-			TUDebuger::WarningLog("WebViewJavascriptBridge: WARNING: Invalid Json Value.");
+			TUDebuger::WarningLog(TEXT("WebViewJavascriptBridge: WARNING: Invalid Json Value."));
 			continue;
 		}
 		TUJSBridgeMessage Message = *JsonObject;
 		FString ResponseID;
-		if (Message->TryGetStringField("responseId", ResponseID)) {
+		if (Message->TryGetStringField(TEXT("responseId"), ResponseID)) {
 			// TODO：这里要不要加奔溃判断
-			ResponseCallbacks[ResponseID](Message->GetObjectField("responseData"));
+			ResponseCallbacks[ResponseID](Message->GetObjectField(TEXT("responseData")));
 			ResponseCallbacks.Remove(ResponseID);
 		} else {
 			TUJSBridgeResponseCallback ResponseCallback = nullptr;
 			FString CallbackID;
-			if (Message->TryGetStringField("callbackId", CallbackID)) {
-				ResponseCallback = [=](TUJSBridgeMessage ResponseData) {
+			if (Message->TryGetStringField(TEXT("callbackId"), CallbackID)) {
+				ResponseCallback = [this, CallbackID](TUJSBridgeMessage ResponseData) {
 					TUJSBridgeMessage MSG;
-					MSG->SetStringField("responseId", CallbackID);
-					MSG->SetObjectField("responseData", ResponseData);
+					MSG->SetStringField(TEXT("responseId"), CallbackID);
+					MSG->SetObjectField(TEXT("responseData"), ResponseData);
 					QueueMessage(MSG);
 				};
 			} else {
@@ -119,14 +119,14 @@ void TUWebViewJavascriptBridge::FlushMessageQueue(const FString& MessageQueueStr
 					// Do nothing
 				};
 			}
-			auto HandlerPtr = MessageHandlers.Find(Message->GetStringField("handlerName"));
+			auto HandlerPtr = MessageHandlers.Find(Message->GetStringField(TEXT("handlerName")));
 			// auto Handler = MessageHandlers[Message->GetStringField("handlerName")];
 			if (!HandlerPtr) {
-				TUDebuger::WarningLog("WVJBNoHandlerException, No handler for message");
+				TUDebuger::WarningLog(TEXT("WVJBNoHandlerException, No handler for message"));
 				continue;
 			}
 			if (auto Handler = *HandlerPtr) {
-				Handler(Message->GetObjectField("data"), ResponseCallback);
+				Handler(Message->GetObjectField(TEXT("data")), ResponseCallback);
 			}
 		}
 	}
@@ -171,7 +171,7 @@ FString TUWebViewJavascriptBridge::WebViewJavascriptFetchQueyCommand() {
 }
 
 void TUWebViewJavascriptBridge::EvaluateJavascript(const FString& JavascriptCommand) {
-	OnEvaluateJavascript.ExecuteIfBound(JavascriptCommand, [=](const FString& Result) {
+	OnEvaluateJavascript.ExecuteIfBound(JavascriptCommand, [this, JavascriptCommand](const FString& Result) {
 		if (JavascriptCommand == WebViewJavascriptFetchQueyCommand()) {
 			FlushMessageQueue(Result);
 		}

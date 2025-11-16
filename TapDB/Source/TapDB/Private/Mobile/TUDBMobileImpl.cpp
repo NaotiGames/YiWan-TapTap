@@ -3,6 +3,8 @@
 #include "TUJsonHelper.h"
 #include "TUMobileBridge.h"
 
+#include "Policies/CondensedJsonPrintPolicy.h"
+
 #if PLATFORM_ANDROID
 #include "Android/AndroidApplication.h"
 #include "Android/AndroidJava.h"

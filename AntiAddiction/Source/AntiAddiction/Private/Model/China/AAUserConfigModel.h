@@ -55,8 +55,16 @@ struct FAAPolicyModel
 {
 	GENERATED_BODY()
 
+	FAAPolicyModel()
+		: policy_active(TEXT(""))
+		, policy_model(TEXT(""))
+		, policy_heartbeat_interval(0)
+	{
+
+	}
+
 	UPROPERTY()
-	FString policy_active ;
+	FString policy_active;
 
 	UPROPERTY()
 	FString policy_model;

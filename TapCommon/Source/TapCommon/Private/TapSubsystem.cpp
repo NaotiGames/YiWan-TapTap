@@ -5,6 +5,7 @@
 
 #include "TUSettings.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
+#include "Engine/GameInstance.h"
 #include "Engine/UserInterfaceSettings.h"
 #include "Widgets/Layout/SDPIScaler.h"
 
@@ -59,9 +60,10 @@ void UTapSubsystem::SetupTapWidgetScaler()
 	UISetting = NewObject<UUserInterfaceSettings>();
 	UISetting->ApplicationScale = 1.f;
 	UISetting->UIScaleRule = EUIScalingRule::ShortestSide;
+
 	if (FProperty* Pro = UISetting->GetClass()->FindPropertyByName(TEXT("UIScaleCurve")))
 	{
-		Pro->ImportText(TEXT("(EditorCurveData=(Keys=((Time=480,Value=0.444),(Time=720,Value=0.666),(Time=1080,Value=1.0),(Time=8640,Value=8.0))),ExternalCurve=None)"), &UISetting->UIScaleCurve, 0, UISetting);
+		Pro->ImportText_Direct(TEXT("(EditorCurveData=(Keys=((Time=480,Value=0.444),(Time=720,Value=0.666),(Time=1080,Value=1.0),(Time=8640,Value=8.0))),ExternalCurve=None)"), &UISetting->UIScaleCurve, nullptr, 0);
 	}
 	else
 	{
@@ -79,10 +81,12 @@ void UTapSubsystem::SetupTapWidgetScaler()
 
 void UTapSubsystem::Deinitialize()
 {
-	check(GEngine && GEngine->GameViewport);
 	if (Scaler)
 	{
-		GEngine->GameViewport->RemoveViewportWidgetContent(Scaler.ToSharedRef());
+		if (GEngine && GEngine->GameViewport)
+		{
+			GEngine->GameViewport->RemoveViewportWidgetContent(Scaler.ToSharedRef());
+		}
 	}
 	Overlay.Reset();
 	Scaler.Reset();

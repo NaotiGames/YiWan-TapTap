@@ -45,7 +45,7 @@ public:
 			return Value;
 		}
 		
-		UClass* ResultClass = FindObject<UClass>(ANY_PACKAGE, *ClassName);
+		UClass* ResultClass = FindObject<UClass>(nullptr, *ClassName);
 
 		if (ResultClass)
 		{
@@ -83,7 +83,7 @@ public:
 			return;
 		}
 		
-		UClass* ResultClass = FindObject<UClass>(ANY_PACKAGE, *ClassName);
+		UClass* ResultClass = FindObject<UClass>(nullptr, *ClassName);
 
 		if (ResultClass)
 		{

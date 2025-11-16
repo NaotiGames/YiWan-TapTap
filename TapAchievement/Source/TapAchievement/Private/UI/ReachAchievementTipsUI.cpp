@@ -9,7 +9,10 @@
 #include "Animation/UMGSequencePlayer.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
+#include "TimerManager.h"
+#include "Engine/Texture2D.h"
 #include "Engine/Texture2DDynamic.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 void UReachAchievementTipsUI::ShowReachAchievement(const FString& DisplayId)
 {

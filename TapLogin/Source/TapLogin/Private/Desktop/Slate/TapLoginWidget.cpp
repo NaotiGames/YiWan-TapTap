@@ -384,7 +384,7 @@ void STapLoginWidget::RefreshQrCode()
 	TWeakPtr<STapLoginWidget> WeakSelf(StaticCastSharedRef<STapLoginWidget>(AsShared()));
 	TULoginNet::RequestLoginQrCode(
 		Permissions,
-		[=](TSharedPtr<FTUQrCodeModel> Model, FTULoginError Error)
+		[this, WeakSelf](TSharedPtr<FTUQrCodeModel> Model, FTULoginError Error)
 		{
 			if (TSharedPtr<STapLoginWidget> UI = WeakSelf.Pin())
 			{
@@ -423,7 +423,7 @@ FReply STapLoginWidget::OnWebAuthButtonClicked()
 	}
 	if (WebAuthHelper->ProcessWebAuth(
 		Permissions,
-		[=](FString WebCode)
+		[this](FString WebCode)
 		{
 			GetTokenFromWebCode(WebCode);
 		}))
@@ -539,7 +539,7 @@ void STapLoginWidget::GetTokenFromWebCode(const FString& WebCode)
 void STapLoginWidget::OnRequestScanTipPanel(const FString& Url, TSharedRef<SQrCodeScanTipButton> FireButton)
 {
 	bool bAndroid = AndroidButton == FireButton;
-	UTexture2D*& Tex = bAndroid ? ScanTipTextureAndroid : ScanTipTextureIOS;
+	TObjectPtr<UTexture2D>& Tex = bAndroid ? ScanTipTextureAndroid : ScanTipTextureIOS;
 	if (Tex)
 	{
 		ScanTipBrush.SetImageSize(FVector2D(Tex->GetSizeX(), Tex->GetSizeY()));
@@ -562,7 +562,7 @@ void STapLoginWidget::UpdateScanTipBrush(UTexture2D* ImageTexture, bool bAndroid
 {
 	if (ImageTexture)
 	{
-		UTexture2D*& Tex = bAndroid ? ScanTipTextureAndroid : ScanTipTextureIOS;
+		TObjectPtr<UTexture2D>& Tex = bAndroid ? ScanTipTextureAndroid : ScanTipTextureIOS;
 		Tex = ImageTexture;
 		ScanTipBrush.SetImageSize(FVector2D(Tex->GetSizeX(), Tex->GetSizeY()));
 		ScanTipBrush.SetResourceObject(Tex);

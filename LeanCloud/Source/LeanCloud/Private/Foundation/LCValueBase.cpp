@@ -263,7 +263,7 @@ bool FLCValueDate::operator==(const TSharedPtr<FLCValueBase>& Rhs) {
 	if (!Rhs.IsValid() || Rhs->ValueType != ELCValueType::Date) {
 		return false;
 	}
-	return Value == StaticCastSharedPtr<FLCValueDate>(Rhs)->Value;
+	return Value == (StaticCastSharedPtr<FLCValueDate>(Rhs)->Value);
 }
 
 FLCValue FLCValueGeoPoint::GetLconValue()

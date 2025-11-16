@@ -1,4 +1,5 @@
 #include "TUSettings.h"
+#include "Engine/GameInstance.h"
 
 TUSettings * TUSettings::Instance = nullptr;
 

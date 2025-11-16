@@ -8,6 +8,8 @@
 
 #include "JsonObjectConverter.h"
 #include "JsonWrapper.h"
+#include "Policies/CondensedJsonPrintPolicy.h"
+#include "Misc/Base64.h"
 
 #include "TUDeviceInfo.h"
 #include "TULanguage.h"
@@ -17,9 +19,11 @@
 #include "TUError.h"
 #include "TUHelper.h"
 #include "TUSettings.h"
+#include "TapBillboardStorage.h"
+#include "TimerManager.h"
 #include "Engine/Font.h"
 #include "Engine/FontFace.h"
-#include "TapBillboardStorage.h"
+#include "Engine/GameInstance.h"
 
 
 template<typename CharType, typename PrintPolicy, typename FValue>
@@ -908,7 +912,7 @@ void FTapBillboardPC::AddReferencedObjects(FReferenceCollector& Collector)
 }
 
 void FTapBillboardPC::PrepareData() {
-	auto PrepareDataBlock = [=](const FBillboardAllDetailData& AllDetailData) {
+	auto PrepareDataBlock = [this](const FBillboardAllDetailData& AllDetailData) {
 		CurrentAllDetailData = AllDetailData;
 		CachedMarqueeStyle = AllDetailData.marquee;
 		FTapUrlResourceLoader::PreLoadFileData(CachedMarqueeStyle.icon.url, 3, FTapUrlResourceLoaderSuccessDelegate());
@@ -922,7 +926,7 @@ void FTapBillboardPC::PrepareData() {
 	if (CacheDetailData.IsValid()) {
 		PrepareDataBlock(*CacheDetailData.Get());
 	}
-	Rest_FetchAllDetail(FAllDetailDataResult::CreateLambda([=](const FBillboardAllDetailData& AllDetailData) {
+	Rest_FetchAllDetail(FAllDetailDataResult::CreateLambda([this, PrepareDataBlock](const FBillboardAllDetailData& AllDetailData) {
 		PrepareDataBlock(AllDetailData);
 		TUDataStorage<FTapBillboardStorage>::SaveStruct(FTapBillboardStorage::CacheDetailData, AllDetailData);
 	}), FTapFailed::CreateLambda([=](const FTUError& Error) {
@@ -954,18 +958,18 @@ void FTapBillboardPC::InternalFetchUnreadSplashCallback(const TArray<FAnnounceme
 
 void FTapBillboardPC::TimerFetchMarqueeData()
 {
-	auto Block = [=]() {
+	auto Block = [this]() {
 		Rest_FetchUnreadAnnouncementsGeneralData(ETapBillboardTemplate::Marquee,
 		FAnnouncementGeneralDataResult::CreateRaw(this, &FTapBillboardPC::HandleFetchUnreadMarqueeGeneralData),
 		FTapFailed());
 	};
 
 	if (CachedMarqueeStyle.default_text_color.IsEmpty() || CachedMarqueeStyle.content_background_color.IsEmpty()) {
-		auto PrepareDataBlock = [=](const FBillboardAllDetailData& AllDetailData) {
+		auto PrepareDataBlock = [this](const FBillboardAllDetailData& AllDetailData) {
 			CurrentAllDetailData = AllDetailData;
 			CachedMarqueeStyle = AllDetailData.marquee;
 		};
-		Rest_FetchAllDetail(FAllDetailDataResult::CreateLambda([=](const FBillboardAllDetailData& AllDetailData) {
+		Rest_FetchAllDetail(FAllDetailDataResult::CreateLambda([this, Block](const FBillboardAllDetailData& AllDetailData) {
 			CurrentAllDetailData = AllDetailData;
 			CachedMarqueeStyle = AllDetailData.marquee;
 			Block();
@@ -1000,7 +1004,7 @@ void FTapBillboardPC::HandleFetchMarqueeDetailData(const TArray<FAnnouncementDet
 	PendingDetailsReverse.Reset();
 	for (int32 i = DetailsData.Num() - 1; i >= 0; --i)
 	{
-		PendingDetailsReverse.Add_GetRef(DetailsData[i]);
+		PendingDetailsReverse.Add(DetailsData[i]);
 	}
 	
 	if (PendingDetailsReverse.Num() != 0)

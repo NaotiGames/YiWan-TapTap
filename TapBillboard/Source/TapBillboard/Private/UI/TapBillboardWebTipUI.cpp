@@ -2,8 +2,9 @@
 
 
 #include "TapBillboardWebTipUI.h"
-
 #include "TapBillboardLang.h"
+#include "Engine/Texture2D.h"
+
 
 void UTapBillboardWebTipUI::ShowWait() {
 	SetVisibility(ESlateVisibility::Visible);

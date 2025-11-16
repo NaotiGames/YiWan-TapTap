@@ -44,7 +44,7 @@ void PerfromWrapperResponseCallBack(const TSharedPtr<TUHttpResponse>& Response, 
 	auto JsonObject = TUJsonHelper::GetJsonObject(Response->contentString);
 	bool Success = false;
 	const TSharedPtr<FJsonObject>* DataJsonObject = nullptr;
-	if (JsonObject.IsValid() && JsonObject->TryGetBoolField("success", Success) && JsonObject->TryGetObjectField("data", DataJsonObject))
+	if (JsonObject.IsValid() && JsonObject->TryGetBoolField(TEXT("success"), Success) && JsonObject->TryGetObjectField(TEXT("data"), DataJsonObject))
 	{
 		if (Success)
 		{
@@ -60,7 +60,7 @@ void PerfromWrapperResponseCallBack(const TSharedPtr<TUHttpResponse>& Response, 
 			if (Model.IsValid())
 			{
 				Error = *Model.Get();
-				JsonObject->TryGetNumberField("now", Error.now);
+				JsonObject->TryGetNumberField(TEXT("now"), Error.now);
 			}
 		}
 	}

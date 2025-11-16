@@ -3,6 +3,8 @@
 #include "TUJsonHelper.h"
 #include "TUMobileBridge.h"
 
+#include "Policies/CondensedJsonPrintPolicy.h"
+
 #define TAP_MOMENT_CLZ "com.tapsdk.moment.wrapper.TapMomentService"
 #define TAP_MOMENT_IMPL "com.tapsdk.moment.wrapper.TapMomentServiceImpl"
 #define TAP_MOMENT_SERVICE "TapMomentService"
@@ -19,17 +21,17 @@ void FTapMomentMobileImpl::Init(const FTapMomentConfig& InConfig) {
 	Writer->WriteValue(TEXT("regionType"), InConfig.RegionType == ERegionType::CN);
 	Writer->WriteObjectEnd();
 	Writer->Close();
-	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, "initWithRegion", JsonOutString);
+	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, TEXT("initWithRegion"), JsonOutString);
 }
 
 void FTapMomentMobileImpl::SetCallback(FTapMoment::FDelegate CallBack) {
-	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, "setCallback", "", [=](const FString& ResultJsonStr) {
+	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, TEXT("setCallback"), TEXT(""), [CallBack](const FString& ResultJsonStr) {
 		int Code = -1;
 		FString Msg = "";
 		auto ResultPtr = TUJsonHelper::GetJsonObject(ResultJsonStr);
 		if (ResultPtr.IsValid()) {
-			ResultPtr->TryGetNumberField("code", Code);
-			ResultPtr->TryGetStringField("message", Msg);
+			ResultPtr->TryGetNumberField(TEXT("code"), Code);
+			ResultPtr->TryGetStringField(TEXT("message"), Msg);
 		}
 		CallBack.ExecuteIfBound(Code, Msg);
 	}, false);
@@ -42,7 +44,7 @@ void FTapMomentMobileImpl::Open(ETapMomentOrientation Orientation) {
 	Writer->WriteValue(TEXT("config"), (int)Orientation);
 	Writer->WriteObjectEnd();
 	Writer->Close();
-	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, "open", args);
+	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, TEXT("open"), args);
 }
 
 void FTapMomentMobileImpl::Publish(ETapMomentOrientation Orientation, const TArray<FString>& ImagePaths,
@@ -55,7 +57,7 @@ void FTapMomentMobileImpl::Publish(ETapMomentOrientation Orientation, const TArr
 	Writer->WriteValue(TEXT("content"), Content);
 	Writer->WriteObjectEnd();
 	Writer->Close();
-	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, "publish", JsonOutString);
+	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, TEXT("publish"), JsonOutString);
 }
 
 void FTapMomentMobileImpl::PublishVideo(ETapMomentOrientation Orientation, const TArray<FString>& VideoPaths,
@@ -70,7 +72,7 @@ void FTapMomentMobileImpl::PublishVideo(ETapMomentOrientation Orientation, const
 	Writer->WriteValue(TEXT("desc"), Desc);
 	Writer->WriteObjectEnd();
 	Writer->Close();
-	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, "publishVideoImage", JsonOutString);
+	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, TEXT("publishVideoImage"), JsonOutString);
 }
 
 void FTapMomentMobileImpl::PublishVideo(ETapMomentOrientation Orientation, const TArray<FString>& VideoPaths,
@@ -84,15 +86,15 @@ void FTapMomentMobileImpl::PublishVideo(ETapMomentOrientation Orientation, const
 	Writer->WriteValue(TEXT("desc"), Desc);
 	Writer->WriteObjectEnd();
 	Writer->Close();
-	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, "publishVideo", JsonOutString);
+	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, TEXT("publishVideo"), JsonOutString);
 }
 
 void FTapMomentMobileImpl::FetchNotification() {
-	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, "fetchNotification", "");
+	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, TEXT("fetchNotification"), TEXT(""));
 }
 
 void FTapMomentMobileImpl::Close() {
-	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, "close", "");
+	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, TEXT("close"), TEXT(""));
 }
 
 void FTapMomentMobileImpl::Close(const FString& Title, const FString& Content) {
@@ -103,7 +105,7 @@ void FTapMomentMobileImpl::Close(const FString& Title, const FString& Content) {
 	Writer->WriteValue(TEXT("content"), Content);
 	Writer->WriteObjectEnd();
 	Writer->Close();
-	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, "closeWithConfirmWindow", JsonOutString);
+	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, TEXT("closeWithConfirmWindow"), JsonOutString);
 }
 
 // void FTapMomentMobileImpl::SetUseAutoRotate(bool UseAuto) {
@@ -120,12 +122,12 @@ void FTapMomentMobileImpl::DirectlyOpen(ETapMomentOrientation Orientation, const
 	Writer->WriteValue(TEXT("extras"), TUJsonHelper::GetJsonString(Extras));
 	Writer->WriteObjectEnd();
 	Writer->Close();
-	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, "directlyOpen", JsonOutString);
+	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, TEXT("directlyOpen"), JsonOutString);
 }
 
 void FTapMomentMobileImpl::NeedDeferSystemGestures() {
 #if PLATFORM_IOS
-	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, "needDeferSystemGestures", "");
+	TUMobileBridge::AsyncPerform(TAP_MOMENT_SERVICE, TEXT("needDeferSystemGestures"), TEXT(""));
 #else
 	FTapMomentImpl::NeedDeferSystemGestures();
 #endif

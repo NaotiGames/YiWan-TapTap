@@ -129,7 +129,7 @@ FTapBillboard::FTapBillboard()
 	BillboardDelegateImpl.marqueeShowBlock = ^(TapBillboardMarquee *marquee, TapBillboardMarqueeConfig *config) {
 		FTapBillboardMarquee MarqueeUE = ConverMarquee(marquee);
 		FTapBillboardMarqueeConfig MarqueeConfigUE = ConverMarqueeConfig(config);
-		TUHelper::PerformOnGameThread([=](){ OnBillboardMarqueeShow.Broadcast(MarqueeUE, MarqueeConfigUE); });
+		TUHelper::PerformOnGameThread([this, MarqueeUE, MarqueeConfigUE](){ OnBillboardMarqueeShow.Broadcast(MarqueeUE, MarqueeConfigUE); });
 	};
 	BillboardDelegateImpl.billboardMessageListener = ^(NSString * _Nullable customUrl) {
 		FString Url = FString(customUrl);

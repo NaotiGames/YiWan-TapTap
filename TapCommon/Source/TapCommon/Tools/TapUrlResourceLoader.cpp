@@ -126,7 +126,7 @@ void FTapUrlResourceLoader::DownloadFileData(const FString& Url, float Timeout,
 	HttpRequest->SetVerb(TEXT("GET"));
 	HttpRequest->SetTimeout(Timeout);
 	if (OnProgress.IsBound()) {
-		HttpRequest->OnRequestProgress().BindLambda([=](FHttpRequestPtr Request, int32 BytesSent, int32 BytesReceived) {
+		HttpRequest->OnRequestProgress64().BindLambda([=](FHttpRequestPtr Request, int64 BytesSent, int64 BytesReceived) {
 			TUHelper::PerformOnGameThread([=]() {
 				if (!Request.IsValid() || !Request->GetResponse().IsValid()) {
 					OnProgress.ExecuteIfBound(0);

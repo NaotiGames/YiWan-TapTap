@@ -218,7 +218,7 @@ void TUCommonPCImpl::TapLoginDelegate(int CallbackId, void* UserData)
 			if(CurrentLoginCallBack != nullptr && UserData != nullptr)
 			{
 				const AuthorizeFinishedResponse* Response = static_cast<AuthorizeFinishedResponse*>(UserData);
-				UE_LOG(LogTap,Log,TEXT("TapLoginCallback dellgate recevied %d %hs"), Response->is_cancel,  UTF8_TO_TCHAR(Response->callback_uri) );
+				UE_LOG(LogTap,Log,TEXT("TapLoginCallback dellgate recevied %d %s"), Response->is_cancel,  UTF8_TO_TCHAR(Response->callback_uri));
 				CurrentLoginCallBack(Response->is_cancel > 0, false, "", UTF8_TO_TCHAR(Response->callback_uri));
 				CurrentLoginCallBack = nullptr;
 			}

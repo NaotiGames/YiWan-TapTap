@@ -9,6 +9,8 @@
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/OverlaySlot.h"
 #include "Components/ScrollBoxSlot.h"
+#include "Engine/Engine.h"
+#include "Engine/GameViewportClient.h"
 
 
 #if PLATFORM_ANDROID || PLATFORM_IOS

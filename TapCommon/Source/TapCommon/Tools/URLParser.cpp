@@ -266,11 +266,11 @@ namespace TUCommon
 			FString qp(InQueryParameters);
 			if (qp[0] == TCHAR('?') || qp[0] == TCHAR('&'))
 			{
-				qp.RightChopInline(1, false);
+				qp.RightChopInline(1, EAllowShrinking::No);
 			}
 			if (qp.Len() && qp[qp.Len()-1] == TCHAR('&'))
 			{
-				qp.LeftChopInline(1, false);
+				qp.LeftChopInline(1, EAllowShrinking::No);
 			}
 			if (bAppend)
 			{

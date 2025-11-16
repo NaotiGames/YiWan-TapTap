@@ -1,6 +1,7 @@
 #pragma once
 #include "TUSupportImpl.h"
 #include "Http.h"
+#include "TimerManager.h"
 
 
 class TUSupportPCImpl: public TUSupportImpl {

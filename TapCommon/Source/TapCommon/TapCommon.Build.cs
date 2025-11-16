@@ -53,8 +53,8 @@ public class TapCommon : ModuleRules
 
 				"HTTP",
 				"Sockets",
-				"WebBrowser", 
-				
+				"WebBrowser",
+
 				"ImageWrapper"
 			}
 		);

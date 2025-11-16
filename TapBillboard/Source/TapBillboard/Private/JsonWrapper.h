@@ -38,6 +38,16 @@ struct FMarqueeContentChild
 {
 	GENERATED_BODY()
 
+	FMarqueeContentChild()
+		: text(TEXT(""))
+		, bold(false)
+		, highlight(false)
+		, italic(false)
+		, underline(false)
+	{
+
+	}
+
 	UPROPERTY()
 	FString text;
 

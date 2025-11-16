@@ -3,11 +3,21 @@
 #include "TUCrypto.h"
 #include "TUDebuger.h"
 
-namespace TUOpenSSL_Space {
+#define UI OpenSSL_UI
 #include <openssl/sha.h>
 #include <openssl/rsa.h>
 #include <openssl/pem.h>
+#undef UI
 
+namespace TUOpenSSL_Space {
+	using ::RSA;
+	using ::SHA256;
+	using ::RSA_free;
+	using ::RSA_public_encrypt;
+	using ::RSA_private_encrypt;
+	using ::RSA_public_decrypt;
+	using ::RSA_private_decrypt;
+	
 	typedef int (*RSAFunc)(int flen, const unsigned char *from, unsigned char *to, RSA *rsa, int padding);
 	static bool RSAEncryptOrDecrypt(const TArray<uint8>& Content, TArray<uint8>& Result, RSA* RSA, const RSAFunc RSAFunc, bool IsEncrypt) {
 
@@ -89,9 +99,6 @@ namespace TUOpenSSL_Space {
 		return _RSA;
 	}
 }
-#include <openssl/sha.h>
-
-
 
 FString TUOpenSSL::LexToString(const TArray<uint8>& Content) {
 	FString Result;

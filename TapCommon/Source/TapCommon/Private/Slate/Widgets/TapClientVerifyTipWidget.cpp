@@ -194,7 +194,7 @@ void STapClientVerifyTipWidget::SetInitErrorType(int ErrorType)
 	{
 		ErrorTip = TEXT("获取游戏信息超时，请从 TapTap 客户端重新启动游戏");
 	}
-	TipTextBlock->SetText(ErrorTip);
+	TipTextBlock->SetText(FText::FromString(ErrorTip));
 }
 
 FNavigationReply STapClientVerifyTipWidget::OnNavigation(const FGeometry& MyGeometry, const FNavigationEvent& InNavigationEvent)

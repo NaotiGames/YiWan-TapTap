@@ -8,6 +8,9 @@
 #include "TUSettings.h"
 #include "TUSupportNet.h"
 #include "GenericPlatform/GenericPlatformHttp.h"
+#include "Engine/GameInstance.h"
+
+#include "Policies/CondensedJsonPrintPolicy.h"
 
 
 TUSupportPCImpl::TUSupportPCImpl() {
@@ -213,7 +216,7 @@ void TUSupportPCImpl::FetchUnReadStatus() {
 	TUSupportNet::FetchUnReadStatus(
 		LoginType,
 		CachedId,
-		[=](const FString& Model, const FTUError& Error)
+		[this](const FString& Model, const FTUError& Error)
 		{
 			if (Model.IsEmpty())
 			{
@@ -225,7 +228,7 @@ void TUSupportPCImpl::FetchUnReadStatus() {
 				if (Model != UnreadStatus)
 				{
 					Resume();
-					TapUESupport::OnUnreadStatusChanged.ExecuteIfBound(Model == "true");
+					TapUESupport::OnUnreadStatusChanged.ExecuteIfBound(Model == TEXT("true"));
 				}
 				bUnregister = false;
 				UnreadStatus = Model;

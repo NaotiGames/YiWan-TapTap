@@ -79,12 +79,12 @@ void AAUChinaImpl::StartupWithTapTap(const FString& UserId)
 	}
 	//先获取 realName Config
 
-	FetchRealNameConfig(UserId, [=](TSharedPtr<FAAURealNameConfigModel> ConfigModelPtr, const FAntiAddictionError& ConfigError)
+	FetchRealNameConfig(UserId, [this, UserId](TSharedPtr<FAAURealNameConfigModel> ConfigModelPtr, const FAntiAddictionError& ConfigError)
 	{
 		if(ConfigModelPtr.IsValid())
 		{
 			FTapCommonModule::TapThrobberShowWait();
-			auto ResultBlock = [=](TSharedPtr<FAAURealNameResultModel> ModelPtr, const FAntiAddictionError& Error)
+			auto ResultBlock = [this, UserId](TSharedPtr<FAAURealNameResultModel> ModelPtr, const FAntiAddictionError& Error)
 			{
 				FTapCommonModule::TapThrobberDismiss();
 				if (ModelPtr.IsValid())
@@ -263,7 +263,7 @@ void AAUChinaImpl::CheckPayLimit(int Amount, TFunction<void(bool Status)> CallBa
 			.BlueButtonText(LOCTEXT("BackGame", "返回游戏"));
 			UTapSubsystem::AddWidget(Box);
 		}
-	}, [=](const FAntiAddictionError& Error)->void
+	}, [this, FailureHandler](const FAntiAddictionError& Error)->void
 	{
 		if(FailureHandler)
 		{
@@ -279,7 +279,7 @@ void AAUChinaImpl::CheckPayLimit(int Amount, TFunction<void(bool Status)> CallBa
 void AAUChinaImpl::SubmitPayResult(int Amount, TFunction<void(bool Success)> CallBack,
                                    TFunction<void(const FString& Msg)> FailureHandler)
 {
-	Server->SubmitPayResult(Amount, CallBack, [=](const FAntiAddictionError& Error)->void
+	Server->SubmitPayResult(Amount, CallBack, [this, FailureHandler](const FAntiAddictionError& Error)->void
 	{
 		if(FailureHandler)
 		{
@@ -327,21 +327,21 @@ void AAUChinaImpl::Login(const FString& AccessToken, bool IsFirst, bool bTapUser
 
 	FTapCommonModule::TapThrobberShowWait();
 	//先获取 用户配置
-	FetchUserConfig(CurrentUserID, AccessToken,[=](TSharedPtr<FAAUserConfigModel> ModelPtr, const FAntiAddictionError& Error)->void
+	FetchUserConfig(CurrentUserID, AccessToken,[this, AccessToken, IsFirst, bTapUser](TSharedPtr<FAAUserConfigModel> ModelPtr, const FAntiAddictionError& Error)->void
 	{
 		if(ModelPtr.IsValid())
 		{
 			if(!ModelPtr.Get()->content_rating_check.allow)
 			{
 				FTapCommonModule::TapThrobberDismiss();
-				InternalCallback.ExecuteIfBound(AntiAddictionUE::AgeRestrict, "failed");
+				InternalCallback.ExecuteIfBound(AntiAddictionUE::AgeRestrict, TEXT("failed"));
 				return;
 			}
 			CurrentSession = TUHelper::GetRandomStr(32);
 			FAAUUser* currentUser = new FAAUUser(CurrentUserID, AccessToken);
 			currentUser->ResetAgeLimit(ModelPtr.Get()->real_name.age_limit, ModelPtr.Get()->real_name.is_adult);
 		
-			Server->Login(*currentUser, UseAgeRange, CurrentSession, [=](TSharedPtr<AAULoginResult> Result, const FAntiAddictionError& Error)
+			Server->Login(*currentUser, UseAgeRange, CurrentSession, [this, IsFirst, bTapUser](TSharedPtr<AAULoginResult> Result, const FAntiAddictionError& Error)
 			{
 				FTapCommonModule::TapThrobberDismiss();
 				if(Result != nullptr && Result.IsValid())
@@ -359,7 +359,7 @@ void AAUChinaImpl::Login(const FString& AccessToken, bool IsFirst, bool bTapUser
 					}
 					if (Result.Get()->LoginState == AAULoginResult::SuccessWithNoLimit)
 					{
-						InternalCallback.ExecuteIfBound(AntiAddictionUE::LoginSuccess, "Success");
+						InternalCallback.ExecuteIfBound(AntiAddictionUE::LoginSuccess, TEXT("Success"));
 						EnterGame();
 					}
 					else if (Result.Get()->LoginState == AAULoginResult::SuccessWithLimit)
@@ -377,7 +377,7 @@ void AAUChinaImpl::Login(const FString& AccessToken, bool IsFirst, bool bTapUser
 						Exit();
 					}else
 					{
-						InternalCallback.ExecuteIfBound(AntiAddictionUE::InvalidClientOrNetworkError, "failed");
+						InternalCallback.ExecuteIfBound(AntiAddictionUE::InvalidClientOrNetworkError, TEXT("failed"));
 					}
 				}
 			});
@@ -587,7 +587,7 @@ void AAUChinaImpl::ShowHealthTipUI(const FString& Title, const FString& Content,
 				.TitleText(FText::FromString(Title))
 				.ContentRichText(FText::FromString(Content))
 				.BlueButtonText(LOCTEXT("EnterGame", "进入游戏"))
-				.OnBlueButtonClicked(FMessageBoxButtonDelegate::CreateLambda([=](const TSharedRef<class STapMessageBox>& Box)
+				.OnBlueButtonClicked(FMessageBoxButtonDelegate::CreateLambda([this](const TSharedRef<class STapMessageBox>& Box)
 		                                                     {
 			                                                     InternalCallback.ExecuteIfBound(AntiAddictionUE::LoginSuccess, "Success");
 																 EnterGame();
@@ -647,7 +647,7 @@ void AAUChinaImpl::StartupQuickVerifyTapAuth()
 void AAUChinaImpl::QuickVerify(const TSharedRef<FTUAccessToken>& TapToken)
 {
 	FTapCommonModule::TapThrobberShowWait();
-	AAUChinaRealName::CheckRealNameStateByTapToken(CurrentUserID,TapToken,"",[=](TSharedPtr<FAAURealNameResultModel> ModelPtr, const FAntiAddictionError& Error)->void
+	AAUChinaRealName::CheckRealNameStateByTapToken(CurrentUserID,TapToken,"",[this](TSharedPtr<FAAURealNameResultModel> ModelPtr, const FAntiAddictionError& Error)->void
 	{
 		HandleQuickVerifyTdsResult(ModelPtr, Error);
 	});

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "JsonObjectConverter.h"
+#include "Policies/CondensedJsonPrintPolicy.h"
 #include "TapAchievementTypes.generated.h"
 
 
@@ -78,7 +79,7 @@ struct TAPACHIEVEMENT_API FAchievementDescTap
 	 * set IconTexture = nullptr if you wants release resource. then it will be GC by engine
 	 */
 	UPROPERTY(BlueprintReadOnly, EditAnywhere)
-	mutable UTexture2D* IconTexture = nullptr;
+	mutable TObjectPtr<UTexture2D> IconTexture = nullptr;
 
 	FORCEINLINE bool IsPlatinum() const { return Type == 99; }
 };

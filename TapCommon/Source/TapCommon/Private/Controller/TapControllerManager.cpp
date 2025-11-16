@@ -11,9 +11,11 @@
 #include "Controller/Input/TapControllerInput.h"
 #include "Framework/Application/NavigationConfig.h"
 #include "GameFramework/HUD.h"
+#include "Engine/Engine.h"
 #include "Engine/Canvas.h"
 #include "Framework/Application/SlateUser.h"
 #include "Widgets/SViewport.h"
+#include "Misc/EngineVersionComparison.h"
 
 void SetupTapNavigation(TSharedRef<SWidget> InWidget, TSharedPtr<SWidget> Up, TSharedPtr<SWidget> Down, TSharedPtr<SWidget> Left, TSharedPtr<SWidget> Right, TSharedPtr<SWidget> Next,
                         TSharedPtr<SWidget> Previous)
@@ -103,7 +105,7 @@ TSharedPtr<STapControllerTip> FTapControllerManager::RegisterWidget(const TShare
 	if (IsAlreadyStarted())
 	{
 		UpdateRunningState(true);
-#if ENGINE_MAJOR_VERSION >= 5
+#if UE_VERSION_NEWER_THAN(5, 0, 0)
 		FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this](float)
 #else
 		FTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this](float)
@@ -121,7 +123,7 @@ TSharedPtr<STapControllerTip> FTapControllerManager::RegisterWidget(const TShare
 			{
 				FSlateApplication::Get().FindPathToWidget(FocusWidget.ToSharedRef(), FocusPath);
 			}
-#if ENGINE_MAJOR_VERSION >= 5
+#if UE_VERSION_NEWER_THAN(5, 0, 0)
 			if (!Data->RootWidget.IsValid() || !FocusPath.ContainsWidget(Data->RootWidget.Pin().Get()))
 #else
 			if (!Data->RootWidget.IsValid() || !FocusPath.ContainsWidget(Data->RootWidget.Pin().ToSharedRef()))
@@ -155,7 +157,7 @@ void FTapControllerManager::UnregisterWidget(void* InKeyWidget)
 			}
 			else
 			{
-#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 0)
+#if UE_VERSION_NEWER_THAN(5, 0, 0)
 				FTSTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this](float)
 #else
 				FTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateLambda([this](float)
@@ -262,7 +264,7 @@ bool FTapControllerManager::UpdateRunningState(bool bNewRunning)
 			ChangeInputModeFocus();
 			if (const FSlateBrush* Brush = FTapCommonModule::Get().Style->GetBrush("/Controller/DefaultFocusBrush"))
 			{
-#if ENGINE_MAJOR_VERSION >= 5
+#if UE_VERSION_NEWER_THAN(5, 0, 0)
 				const_cast<FSlateStyleSet&>(static_cast<const FSlateStyleSet&>(FAppStyle::Get())).Set<FSlateBrush>("FocusRectangle", const_cast<FSlateBrush*>(Brush));
 #else
 				FCoreStyle::SetFocusBrush(const_cast<FSlateBrush*>(Brush));

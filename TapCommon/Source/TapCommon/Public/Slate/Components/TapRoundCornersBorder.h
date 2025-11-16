@@ -38,5 +38,5 @@ public:
 
 	TSharedPtr<FSlateBrush> Brush;
 
-	UMaterialInterface* GCMat = nullptr;
+	TObjectPtr<UMaterialInterface> GCMat = nullptr;
 };

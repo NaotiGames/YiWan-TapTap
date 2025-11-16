@@ -8,6 +8,7 @@
 #include "Framework/Application/SlateUser.h"
 #include "Input/HittestGrid.h"
 #include "Widgets/SViewport.h"
+#include "Misc/EngineVersionComparison.h"
 
 
 FTapControllerInput::FTapControllerInput()
@@ -63,7 +64,7 @@ bool FTapControllerInput::HandleKeyDownEvent(FSlateApplication& SlateApp, const 
 		return false;
 	}
 
-	if (InKeyEvent.GetKey() == EKeys::Virtual_Back)
+	if (InKeyEvent.GetKey() == EKeys::Virtual_Gamepad_Back)
 	{
 		if (Data->OnBackButtonClicked.IsBound())
 		{
@@ -208,7 +209,7 @@ bool FTapControllerInput::TapUINavigationImpl(EUINavigation Direction, TSharedRe
 				FSlateApplication::Get().FindPathToWidget(FocusWidget.ToSharedRef(), FocusPath);
 			}
 				
-#if ENGINE_MAJOR_VERSION >= 5
+#if UE_VERSION_NEWER_THAN(5, 0, 0)
 			if (!FocusPath.ContainsWidget(RootWidget.Get()) || (FocusWidget && FocusWidget->GetType() == TEXT("SViewport")))
 #else
 			if (!FocusPath.ContainsWidget(RootWidget.ToSharedRef()) || (FocusWidget && FocusWidget->GetType() == TEXT("SViewport")))

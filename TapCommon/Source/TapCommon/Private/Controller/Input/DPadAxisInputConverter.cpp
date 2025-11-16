@@ -2,6 +2,7 @@
 
 
 #include "Controller/Input/DPadAxisInputConverter.h"
+#include "Misc/EngineVersionComparison.h"
 
 
 bool FDPadAxisInputConverter::HandleAnalogInputEvent(FSlateApplication& SlateApp, const FAnalogInputEvent& InAnalogInputEvent)
@@ -30,7 +31,7 @@ bool FDPadAxisInputConverter::HandleAnalogInputEvent(FSlateApplication& SlateApp
 
 		if (NewButton != LastButton)
 		{
-#if (ENGINE_MAJOR_VERSION >= 5 && ENGINE_MINOR_VERSION >= 1)
+#if UE_VERSION_NEWER_THAN(5, 1, 0)
 			FPlatformUserId UserId = IPlatformInputDeviceMapper::Get().GetPrimaryPlatformUser();
 			FInputDeviceId DeviceId = IPlatformInputDeviceMapper::Get().GetDefaultInputDevice();
 			if (FKey(LastButton).IsValid())

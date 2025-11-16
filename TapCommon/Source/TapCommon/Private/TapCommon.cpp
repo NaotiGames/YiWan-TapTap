@@ -25,7 +25,7 @@ void FTapCommonModule::StartupModule()
 #if PLATFORM_MAC
 	IWebBrowserModule::Get().GetSingleton();
 #endif
-	Style = FSlateGameResources::New(TAP_STYLE_NAME_COMMON, "/TapCommon/Styles", "/TapCommon/Styles");
+	Style = FSlateGameResources::New(TAP_STYLE_NAME_COMMON, TEXT("/TapCommon/Styles"), TEXT("/TapCommon/Styles"));
 	FSlateStyleRegistry::RegisterSlateStyle(*Style);
 
 #if PLATFORM_ANDROID || PLATFORM_IOS
@@ -33,9 +33,9 @@ void FTapCommonModule::StartupModule()
 #endif
 
 #if PLATFORM_WINDOWS
-	if (!FModuleManager::Get().IsModuleLoaded("Messaging"))
+	if (!FModuleManager::Get().IsModuleLoaded(TEXT("Messaging")))
 	{
-		FModuleManager::Get().LoadModule("Messaging");
+		FModuleManager::Get().LoadModule(TEXT("Messaging"));
 	}
 	TapClientBridge::LoadSDK();
 #endif
@@ -73,7 +73,7 @@ void HandleImageBrushRequest(FHttpRequestPtr HttpRequest, FHttpResponsePtr HttpR
 		return;
 	}
 
-	FString ETag = HttpResponse->GetHeader("ETag");
+	FString ETag = HttpResponse->GetHeader(TEXT("ETag"));
 
 	// check status code
 	int32 StatusCode = HttpResponse->GetResponseCode();
@@ -85,7 +85,7 @@ void HandleImageBrushRequest(FHttpRequestPtr HttpRequest, FHttpResponsePtr HttpR
 	}
 
 	// build an image wrapper for this type
-	static const FName MODULE_IMAGE_WRAPPER("ImageWrapper");
+	static const FName MODULE_IMAGE_WRAPPER(TEXT("ImageWrapper"));
 	IImageWrapperModule& ImageWrapperModule = FModuleManager::LoadModuleChecked<IImageWrapperModule>(MODULE_IMAGE_WRAPPER);
 
 	// Look at the signature of the downloaded image to detect image type. (and ignore the content type header except for error reporting)
@@ -159,7 +159,7 @@ void FTapCommonModule::AsyncDownloadImage(const FString& Url, const FAsyncDownlo
 
 void FTapCommonModule::TapThrobberShowWait()
 {
-	FTapCommonModule& Module = FModuleManager::GetModuleChecked<FTapCommonModule>("TapCommon");
+	FTapCommonModule& Module = FModuleManager::GetModuleChecked<FTapCommonModule>(TEXT("TapCommon"));
 	if (!Module.TapThrobber)
 	{
 		SAssignNew(Module.TapThrobber, STapThrobber).bBlock(true);
@@ -172,7 +172,7 @@ void FTapCommonModule::TapThrobberShowWait()
 
 void FTapCommonModule::TapThrobberShowWaitAndToast(const FString& Toast)
 {
-	FTapCommonModule& Module = FModuleManager::GetModuleChecked<FTapCommonModule>("TapCommon");
+	FTapCommonModule& Module = FModuleManager::GetModuleChecked<FTapCommonModule>(TEXT("TapCommon"));
 	const FText NewContent = FText::FromString(Toast);
 	if (Module.TapThrobber)
 	{
@@ -192,7 +192,7 @@ void FTapCommonModule::TapThrobberShowWaitAndToast(const FString& Toast)
 
 void FTapCommonModule::TapThrobberDismiss()
 {
-	FTapCommonModule& Module = FModuleManager::GetModuleChecked<FTapCommonModule>("TapCommon");
+	FTapCommonModule& Module = FModuleManager::GetModuleChecked<FTapCommonModule>(TEXT("TapCommon"));
 	if (Module.TapThrobber && GEngine && GEngine->GameViewport)
 	{
 		UTapSubsystem::RemoveWidget(Module.TapThrobber.ToSharedRef());
@@ -202,7 +202,7 @@ void FTapCommonModule::TapThrobberDismiss()
 
 void FTapCommonModule::TapThrobberShowToast(const FString& Toast, float TimeInterval)
 {
-	FTapCommonModule& Module = FModuleManager::GetModuleChecked<FTapCommonModule>("TapCommon");
+	FTapCommonModule& Module = FModuleManager::GetModuleChecked<FTapCommonModule>(TEXT("TapCommon"));
 	const FText NewContent = FText::FromString(Toast);
 	if (Module.TapThrobber)
 	{
@@ -227,7 +227,7 @@ void FTapCommonModule::TapThrobberShowToast(const FString& Toast, float TimeInte
 
 void FTapCommonModule::OnTapThrobberRemoveSelf(const TSharedRef<STapThrobber>& Throbber)
 {
-	FTapCommonModule& Module = FModuleManager::GetModuleChecked<FTapCommonModule>("TapCommon");
+	FTapCommonModule& Module = FModuleManager::GetModuleChecked<FTapCommonModule>(TEXT("TapCommon"));
 	Module.TapThrobber.Reset();
 }
 

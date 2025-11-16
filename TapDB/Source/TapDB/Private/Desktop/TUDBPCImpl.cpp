@@ -200,8 +200,8 @@ bool TUDBPCImpl::CheckStringParam(const FString& Para, const FString& ParaName) 
 }
 
 void TUDBPCImpl::RegisterCoreDelegate() {
-	FCoreDelegates::ApplicationWillDeactivateDelegate.AddLambda([=]() {
-		TUDebuger::DisplayLog("tapdb-ApplicationWillDeactivateDelegate");
+	FCoreDelegates::ApplicationWillDeactivateDelegate.AddLambda([this]() {
+		TUDebuger::DisplayLog(TEXT("tapdb-ApplicationWillDeactivateDelegate"));
 		FDateTime Now = FDateTime::Now();
 		// 先把游戏事件缓存到本地，然后发送给服务端，如果发送成功，那么删除，不然下次激活的时候发送
 		auto PlayTime = (Now - StartTime).GetTotalSeconds();
@@ -211,13 +211,13 @@ void TUDBPCImpl::RegisterCoreDelegate() {
 		}
 	});
 
-	FCoreDelegates::ApplicationHasEnteredForegroundDelegate.AddLambda([=]() {
-		TUDebuger::DisplayLog("tapdb-ApplicationHasEnteredForegroundDelegate");
+	FCoreDelegates::ApplicationHasEnteredForegroundDelegate.AddLambda([this]() {
+		TUDebuger::DisplayLog(TEXT("tapdb-ApplicationHasEnteredForegroundDelegate"));
 		StartTime = FDateTime::Now();
 	});
 
-	FCoreDelegates::ApplicationWillTerminateDelegate.AddLambda([=]() {
-		TUDebuger::DisplayLog("tapdb-ApplicationWillTerminateDelegate");
+	FCoreDelegates::GetApplicationWillTerminateDelegate().AddLambda([this]() {
+		TUDebuger::DisplayLog(TEXT("tapdb-ApplicationWillTerminateDelegate"));
 		FDateTime Now = FDateTime::Now();
 		// 先把游戏事件缓存到本地，然后发送给服务端，如果发送成功，那么删除，不然下次激活的时候发送
 		auto PlayTime = (Now - StartTime).GetTotalSeconds();
@@ -225,13 +225,13 @@ void TUDBPCImpl::RegisterCoreDelegate() {
 			// 如果网络请求数为0，说明前面的请求都发送成功了，直接发送时长就行了，如果不是，说明网络情况可能不好，留着下次启动的时候发送。
 			// 以上情况并不是绝对，只是大概率的情况。
 			if (TUDBNet::CacheCount == 0) {
-				TUDebuger::DisplayLog("tapdb-ApplicationWillTerminateDelegate-SendPlayTime");
+				TUDebuger::DisplayLog(TEXT("tapdb-ApplicationWillTerminateDelegate-SendPlayTime"));
 				SendPlayTime(PlayTime);
 			} else {
 				TUDataStorage<FTUDBStorage>::SaveNumber(FTUDBStorage::TapDBPlayTime, PlayTime);
 			}
 		} else {
-			TUDebuger::DisplayLog("tapdb-ApplicationWillTerminateDelegate-SendPlayTime: time short");
+			TUDebuger::DisplayLog(TEXT("tapdb-ApplicationWillTerminateDelegate-SendPlayTime: time short"));
 		}
 	});
 }

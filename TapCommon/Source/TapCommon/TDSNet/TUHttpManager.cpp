@@ -102,7 +102,7 @@ void TUHttpManager::request(TSharedPtr<TUHttpRequest> tdsReq)
 		}
 	}
 	Request->OnProcessRequestComplete().BindLambda(
-		[=](FHttpRequestPtr HttpRequest, FHttpResponsePtr Response, bool bWasSuccessful)
+		[this, tdsReq](FHttpRequestPtr HttpRequest, FHttpResponsePtr Response, bool bWasSuccessful)
 		{
 			tdsReq->tryCount++;
 			if (bWasSuccessful == false || Response->GetResponseCode() >= 500)

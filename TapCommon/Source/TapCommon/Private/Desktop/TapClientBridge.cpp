@@ -14,7 +14,7 @@ AsyncAuthorizeFunc TapClientBridge::SDK_AsyncAuthorize = nullptr;
 
 bool TapClientBridge::LoadSDK()
 {
-    FString DllPath = FPaths::ProjectDir() / TEXT("Plugins/TapCommon/Source/ThirdParty/Windows/taptap_api.dll");
+    FString DllPath = FPaths::ProjectDir() / TEXT("Plugins/OAuthLogin/ThirdPlugins/TapTap/TapCommon/Source/ThirdParty/Windows/taptap_api.dll");
 
     SDKHandle = FPlatformProcess::GetDllHandle(*DllPath);
     if (!SDKHandle)

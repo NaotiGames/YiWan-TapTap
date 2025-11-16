@@ -12,8 +12,10 @@
 #include "Components/PanelWidget.h"
 #include "Components/TextBlock.h"
 #include "PC/TapBillboardPC.h"
+#include "Engine/Engine.h"
 #include "Engine/Font.h"
 #include "Engine/FontFace.h"
+#include "Engine/GameViewportClient.h"
 
 void UTapMarqueeItem::UpdateItem(const FText& Content, float InStartupOffset, int64 Id, bool bMarkReadWhenFinished)
 {

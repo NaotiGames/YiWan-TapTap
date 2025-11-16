@@ -10,7 +10,7 @@ public class LeanCloud : ModuleRules
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 		PublicIncludePaths.Add(Path.GetFullPath(Path.Combine(ModuleDirectory, "Public/Foundation")));
 		PublicIncludePaths.Add(Path.GetFullPath(Path.Combine(ModuleDirectory, "Public/RTM")));
-		
+
 		Console.WriteLine("LeanCloud Module Load");
 
 		bEnableExceptions = true;
@@ -20,14 +20,14 @@ public class LeanCloud : ModuleRules
 				// ... add public include paths required here ...
 			}
 		);
-		
+
 		PrivateIncludePaths.AddRange(
 			new string[] {
 				// ... add other private include paths required here ...
 			}
 		);
-			
-		
+
+
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
@@ -35,13 +35,13 @@ public class LeanCloud : ModuleRules
 				// ... add other public dependencies that you statically link with here ...
 			}
 		);
-			
-		
+
+
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"JsonUtilities",
-				"Http",
+				"HTTP",
 				"CoreUObject",
 				// "Engine",
 				// "Slate",
@@ -58,8 +58,8 @@ public class LeanCloud : ModuleRules
 				}
 			);
 		}
-		
-		
+
+
 		DynamicallyLoadedModuleNames.AddRange(
 			new string[]
 			{

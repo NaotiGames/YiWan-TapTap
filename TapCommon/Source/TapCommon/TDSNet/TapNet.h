@@ -27,6 +27,13 @@ struct FTapResponseWrapper
 {
 	GENERATED_BODY()
 
+	FTapResponseWrapper()
+		: Success(false)
+		, Now(0)
+	{
+
+	}
+
 	UPROPERTY()
 	bool Success;
 
