@@ -24,5 +24,6 @@ void FVerifyEntryStyle::GetResources(TArray<const FSlateBrush*>& OutBrushes) con
 {
 	OutBrushes.Add(&Icon);
 	ContentStyle.GetResources(OutBrushes);
+	ContentScrollBoxStyle.GetResources(OutBrushes);
 	TailStyle.GetResources(OutBrushes);
 }

@@ -346,25 +346,16 @@ void AAUChinaImpl::Login(const FString& AccessToken, bool IsFirst, bool bTapUser
 				FTapCommonModule::TapThrobberDismiss();
 				if(Result != nullptr && Result.IsValid())
 				{
-					if (IsFirst && bTapUser)
-					{
-						if (TSharedPtr<FTULoginProfileModel> Profile = TapUELogin::GetProfile())
-						{
-							STapToast::Show(ETapToastType::TapTap, NSLOCTEXT("TapTap", "RealNameSuccess", "您已在 TapTap 实名！"), Profile->avatar);
-						}
-						else
-						{
-							STapToast::Show(ETapToastType::TapTap, NSLOCTEXT("TapTap", "RealNameSuccess", "您已在 TapTap 实名！"));
-						}
-					}
 					if (Result.Get()->LoginState == AAULoginResult::SuccessWithNoLimit)
 					{
 						InternalCallback.ExecuteIfBound(AntiAddictionUE::LoginSuccess, TEXT("Success"));
 						EnterGame();
+						ShowRealNameToast();
 					}
 					else if (Result.Get()->LoginState == AAULoginResult::SuccessWithLimit)
 					{
 						ShowHealthTipUI(Result.Get()->Title, Result.Get()->Description, false);
+						ShowRealNameToast();
 					}
 					else //AAULoginResult::FailWithCurfew
 					{
@@ -404,23 +395,20 @@ void AAUChinaImpl::FetchUserConfig(const FString& UserId, const FString& Token, 
 		if(ModelPtr.IsValid())
 		{
 			FAAUserConfigModel::SaveToLocal(UserId,ModelPtr);
-			CallBack(ModelPtr,Error);
 		}else
 		{
 			if(Error.httpState == TUHttpResponse::networkError || Error.httpState == TUHttpResponse::serverError)
 			{
 				//尝试从本地加载
-				TSharedPtr<FAAUserConfigModel> UserConfig = TUDataStorage<FAAUStorage>::LoadStruct<FAAUserConfigModel>(FAAUStorage::UserConfig + UserId);
-				if(UserConfig.IsValid())
-				{
-					CallBack(UserConfig,Error);
-					return;
-				}
+				FAAUserConfigModel::GetLocalModel(UserId);
 			}else
 			{
 				FAAUserConfigModel::ResetModel();
 			}
-			CallBack(ModelPtr,Error);
+		}
+		if(CallBack)
+		{
+			CallBack(FAAUserConfigModel::CurrentModel,Error);
 		}
 	});
 }
@@ -524,6 +512,7 @@ void AAUChinaImpl::GotoTapTapQuickVerify()
 
 void AAUChinaImpl::ShowHealthTipUI(const FString& Title, const FString& Content, bool NeedStrict)
 {
+	const FString ValidContent = Content.Replace(TEXT("&nbsp;"), TEXT(" "));
 	if (NeedStrict)
 	{
 		InternalCallback.ExecuteIfBound(AntiAddictionUE::PeriodRestrict, "");
@@ -534,7 +523,7 @@ void AAUChinaImpl::ShowHealthTipUI(const FString& Title, const FString& Content,
 				.ForceControllerLanguageType(ELanguageType::ZH)
 				.bShowCloseButton(false)
 				.TitleText(FText::FromString(Title))
-				.ContentRichText(FText::FromString(Content))
+				.ContentRichText(FText::FromString(ValidContent))
 				.WhiteButtonText(LOCTEXT("QuitGame", "退出游戏"))
 				.BlueButtonText(LOCTEXT("SwitchAccount", "切换账号"))
 				.bCloseBoxAfterWhiteButtonClicked(false)
@@ -561,7 +550,7 @@ void AAUChinaImpl::ShowHealthTipUI(const FString& Title, const FString& Content,
 				.ForceControllerLanguageType(ELanguageType::ZH)
 				.bShowCloseButton(false)
 				.TitleText(FText::FromString(Title))
-				.ContentRichText(FText::FromString(Content))
+				.ContentRichText(FText::FromString(ValidContent))
 				.BlueButtonText(LOCTEXT("QuitGame", "退出游戏"))
 				.bCloseBoxAfterWhiteButtonClicked(false)
 				.OnBlueButtonClicked(FMessageBoxButtonDelegate::CreateLambda([](const TSharedRef<class STapMessageBox>& Box)
@@ -585,7 +574,7 @@ void AAUChinaImpl::ShowHealthTipUI(const FString& Title, const FString& Content,
 				.ForceControllerLanguageType(ELanguageType::ZH)
 				.bShowCloseButton(false)
 				.TitleText(FText::FromString(Title))
-				.ContentRichText(FText::FromString(Content))
+				.ContentRichText(FText::FromString(ValidContent))
 				.BlueButtonText(LOCTEXT("EnterGame", "进入游戏"))
 				.OnBlueButtonClicked(FMessageBoxButtonDelegate::CreateLambda([this](const TSharedRef<class STapMessageBox>& Box)
 		                                                     {
@@ -690,5 +679,17 @@ void AAUChinaImpl::HandleQuickVerifyTdsResult(TSharedPtr<FAAURealNameResultModel
 		ShowRealNameUI(AAURealNameWordTypeVerify, true);
 	}
 }
+
+void AAUChinaImpl::ShowRealNameToast()
+{
+	const FString Key = "compliance_tip_" + CurrentUserID ;
+	bool HasShow = TUDataStorage<FAAUStorage>::LoadBool(Key);
+	if(!HasShow)
+	{
+		FTapCommonModule::TapToastThrobberShowToast(TEXT("已通过防沉迷校验，祝您游戏愉快！"));
+		TUDataStorage<FAAUStorage>::SaveBool(Key, true);
+	}
+}
+
 
 #undef LOCTEXT_NAMESPACE

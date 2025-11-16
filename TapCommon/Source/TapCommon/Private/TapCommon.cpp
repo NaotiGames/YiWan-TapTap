@@ -16,6 +16,7 @@
 
 #include "Styling/SlateStyleRegistry.h"
 #include "TapUECommon.h"
+#include "Slate/Widgets/STapToastThrobber.h"
 
 
 #define TAP_STYLE_NAME_COMMON "Tap.Common"
@@ -225,10 +226,41 @@ void FTapCommonModule::TapThrobberShowToast(const FString& Toast, float TimeInte
 	}
 }
 
+void FTapCommonModule::TapToastThrobberShowToast(const FString& Toast, float TimeInterval)
+{
+	FTapCommonModule& Module = FModuleManager::GetModuleChecked<FTapCommonModule>("TapCommon");
+	const FText NewContent = FText::FromString(Toast);
+	if (Module.TapToastThrobber)
+	{
+		Module.TapToastThrobber->ShowThrobber(false);
+		Module.TapToastThrobber->UpdateContent(NewContent);
+		Module.TapToastThrobber->UpdateTimeInterval(TimeInterval);
+		Module.TapToastThrobber->UpdateRemoveSelfDelegate(FOnTapToastThrobberRemoveSelf::CreateStatic(&FTapCommonModule::OnTapToastThrobberRemoveSelf));
+	}
+	else
+	{
+		SAssignNew(Module.TapToastThrobber, STapToastThrobber)
+		.HasThrobber(false)
+		.Content(NewContent)
+		.TimeInterval(TimeInterval)
+		.OnRemoveSelf(FOnTapToastThrobberRemoveSelf::CreateStatic(&FTapCommonModule::OnTapToastThrobberRemoveSelf));
+		if (Module.TapToastThrobber && GEngine && GEngine->GameViewport)
+		{
+			UTapSubsystem::AddWidget(Module.TapToastThrobber.ToSharedRef(), MAX_int16);
+		}
+	}
+}
+
 void FTapCommonModule::OnTapThrobberRemoveSelf(const TSharedRef<STapThrobber>& Throbber)
 {
 	FTapCommonModule& Module = FModuleManager::GetModuleChecked<FTapCommonModule>(TEXT("TapCommon"));
 	Module.TapThrobber.Reset();
+}
+
+void FTapCommonModule::OnTapToastThrobberRemoveSelf(const TSharedRef<STapToastThrobber>& Throbber)
+{
+	FTapCommonModule& Module = FModuleManager::GetModuleChecked<FTapCommonModule>("TapCommon");
+	Module.TapToastThrobber.Reset();
 }
 
 	

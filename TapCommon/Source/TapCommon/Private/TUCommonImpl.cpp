@@ -84,3 +84,30 @@ void TUCommonImpl::TapLoginByTapPCClient(TArray<FString> Permissions, FString Re
 {
 	UnsupportedPlatformsLog
 }
+
+bool TUCommonImpl::QueryTapDLC(FString dlcId)
+{
+	UnsupportedPlatformsLog
+	return false;
+}
+bool TUCommonImpl::ShowStoreWithDLC(FString dlcId)
+{
+	UnsupportedPlatformsLog
+	return false;
+}
+bool TUCommonImpl::HasTapLicense()
+{
+	UnsupportedPlatformsLog
+	return false;
+}
+
+void TUCommonImpl::RegisterDLCOwnedCallback(TFunction<void(FString DLCId, const bool IsOwned)> Callback)
+{
+	UnsupportedPlatformsLog
+}
+void TUCommonImpl::RegisterLicenseCallback(TFunction<void(const bool IsOwned)> Callback)
+{
+	UnsupportedPlatformsLog
+}
+
+

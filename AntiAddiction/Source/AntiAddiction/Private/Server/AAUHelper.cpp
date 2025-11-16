@@ -90,9 +90,9 @@ int64 AAUHelper::IntervalForCurfew(FDateTime ChinaTime) {
 	}
 }
 
-bool AAUHelper::IsHoliday(FDateTime ChinaTime) {
+bool AAUHelper::IsHoliday(FDateTime ChinaTime, const FString& UserId) {
 	FString TodayStr = FString::Printf(TEXT("%i-%02i-%02i"), ChinaTime.GetYear(),ChinaTime.GetMonth(), ChinaTime.GetDay());
-	for (auto Holiday : FAAUserConfigModel::GetLocalModel()->local.time_range.holidays) {
+	for (auto Holiday : FAAUserConfigModel::GetLocalModel(UserId)->local.time_range.holidays) {
 		if (TodayStr == Holiday) {
 			return true;
 		}

@@ -119,7 +119,7 @@ struct FAAUserConfigModel //FAAUChinaConfigModel
 	FAALocalModel local;
 	
 	static void SaveToLocal(const FString& UserId,TSharedPtr<FAAUserConfigModel> Model);
-	static TSharedPtr<FAAUserConfigModel> GetLocalModel();
+	static TSharedPtr<FAAUserConfigModel> GetLocalModel(const FString& UserId);
 	static void ResetModel();
 
 public:

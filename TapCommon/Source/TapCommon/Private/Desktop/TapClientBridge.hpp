@@ -19,10 +19,25 @@ typedef uint32 (*AsyncAuthorizeFunc)(const char* scopes, const char* response_ty
 									 const char* redirect_uri, const char* code_challenge, const char* state,
 									 const char* code_challenge_method, const char* version, const char* sdk_ua,
 									 const char* info);
+typedef bool (*TapAppIsOwnedFunc)();
+typedef bool (*TapDLCShowStoreFunc)(const char *dlcId);
+typedef bool (*TapDLCIsOwnedFunc)(const char *dlcId);
+
 struct AuthorizeFinishedResponse
 {
 	uint32 is_cancel;          // 是否取消（0：否，1：是）
 	char callback_uri[1024];   // 回调地址
+};
+
+struct GamePlayableStatusChangedResponse
+{
+	bool is_playable;
+};
+
+struct DLCPlayableStatusChangedResponse
+{
+	char dlc_id[32];
+	bool is_playable;
 };
 
 class TapClientBridge
@@ -43,6 +58,12 @@ public:
 								 const char* redirect_uri, const char* code_challenge, const char* state,
 								 const char* code_challenge_method, const char* version, const char* sdk_ua,
 							 	 const char* info);
+	static bool TapAppIsOwned();
+
+	static bool TapDLCShowStore(const char* dlcId);
+
+	static bool TapDLCIsOwned(const char* dlcId);
+	
 	enum TapSDKInitResult
 	{
 		// 初始化成功
@@ -53,11 +74,30 @@ public:
 		NoPlatform = 2,
 		// 已安装 TapTap，游戏未通过 TapTap 启动
 		NotLaunchedByPlatform = 3,
+		// 平台版本不匹配，请引导用户升级 TapTap 与游戏至最新版本，再重新运行游戏
+		PlatformVersionMismatch = 4,
 
 		// SDK 本地执行时未知错误
-		Unknown = -1,
-		// SDK 本地执行时超时
-		Timeout = -2,
+		Unknown = -1
+	};
+
+	enum TapEventID
+	{
+		// [1, 2000), reserved for TapTap platform events
+		// 1 reserved for TapTap platform events
+		// SystemStateChanged = 1,
+
+		// [2001, 4000), reserved for TapTap user events
+		AuthorizeFinished_internal = 2001,
+
+		AuthorizeFinished = 2002,
+
+		// [4001, 6000), reserved for TapTap ownership events
+		GamePlayableStatusChanged = 4001,
+		
+		DLCPlayableStatusChanged = 4002,
+
+
 	};
 	
 private:
@@ -72,4 +112,7 @@ private:
 	static RegisterCallbackFunc SDK_UnRegisterCallback;
 	static RunCallbacksFunc SDK_RunCallbacks;
 	static AsyncAuthorizeFunc SDK_AsyncAuthorize;
+	static TapAppIsOwnedFunc SDK_TapAppIsOwned;
+	static TapDLCShowStoreFunc SDK_TapDLCShowStore;
+	static TapDLCIsOwnedFunc SDK_TapDLCIsOwned;
 };

@@ -1,6 +1,7 @@
 #include "TUDBEvent.h"
 
 #include "TapDB.h"
+#include "TUDBDevice.h"
 #include "TUDeviceInfo.h"
 #include "TUDBImpl.h"
 #include "TUHelper.h"
@@ -23,6 +24,7 @@ FString const TUDBEvent::Key::DeviceID1				= "device_id1";
 FString const TUDBEvent::Key::DeviceID2				= "device_id2";
 FString const TUDBEvent::Key::DeviceID3				= "device_id3";
 FString const TUDBEvent::Key::DeviceID4				= "device_id4";
+FString const TUDBEvent::Key::DeviceID5				= "device_id5";
 FString const TUDBEvent::Key::InstallID				= "install_uuid";
 FString const TUDBEvent::Key::PersistID				= "persist_uuid";
 FString const TUDBEvent::Key::Channel				= "channel";
@@ -241,6 +243,7 @@ void TUDBEvent::GenerateCommonProperties() {
 	CommonProperties->SetStringField(Key::InstallID, TUDeviceInfo::GetInstallId());
 	CommonProperties->SetStringField(Key::PersistID, DeviceID);
 	CommonProperties->SetStringField(Key::DeviceID1, DeviceID);
+	CommonProperties->SetStringField(Key::DeviceID5, TUDBDevice::GetDeviceId5());
 	CommonProperties->SetStringField(Key::SDKVersion, TapDB_UE_VERSION);
 	FString GameVersion = TUDBImpl::Get()->Config.GameVersion;
 	if (!GameVersion.IsEmpty()) {

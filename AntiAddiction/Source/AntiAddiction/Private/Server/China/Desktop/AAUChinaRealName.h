@@ -15,8 +15,6 @@ public:
 
 	static void CheckRealNameStateByTapToken(const FString& UserID, const TSharedRef<FTUAccessToken> TapToken,  const FString& Timestamp, TFunction<void(TSharedPtr<FAAURealNameResultModel> ModelPtr, const FAntiAddictionError& Error)> CallBack);
 	
-	static void CheckRealNameStateByOldToken(const FString& UserID, const FString& OldToken, TFunction<void(TSharedPtr<FAAURealNameResultModel> ModelPtr, const FAntiAddictionError& Error)> CallBack);
-
 	static void CheckRealNameStateByUserId(const FString& UserID, TFunction<void(TSharedPtr<FAAURealNameResultModel> ModelPtr, const FAntiAddictionError& Error)> CallBack);
 
 };

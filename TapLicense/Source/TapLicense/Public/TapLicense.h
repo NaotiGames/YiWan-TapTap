@@ -19,11 +19,17 @@ public:
 	DECLARE_DELEGATE_TwoParams(FDLCQueryDelegate, EQueryResult Code, const Map& QueryList);
 	DECLARE_DELEGATE_TwoParams(FDLCOrderDelegate, const FString& Sku, EOrderStatus Status);
 
-	static void SetLicenseCallback(FSimpleDelegate OnSuccess);
+	static void QueryDLC(const TArray<FString>& DLCList);
 	static void SetDLCCallback(FDLCQueryDelegate OnQuery, FDLCOrderDelegate OnOrder);
+	static void SetLicenseCallback(FSimpleDelegate OnSuccess, FSimpleDelegate OnFailed);
 	static void SetDLCCallback(bool bCheckOnce, const FString& PublicKey, FDLCQueryDelegate OnQuery, FDLCOrderDelegate OnOrder);
 	static void Check(bool bIsForce = false);
-	static void QueryDLC(const TArray<FString>& DLCList);
 	static void PurchaseDLC(const FString& DLC);
+
+	UE_DEPRECATED(3.30,"No longer needed with new TapTap client and will be removed in the future")
 	static void SetTestEnvironment(bool bIsTest);
+
+
+
+	
 };

@@ -97,7 +97,7 @@ void AAUChinaSever::Logout() {
 	TUDataStorage<FAAUStorage>::Remove(FAAUStorage::HasLoginedUser +  CurrentUser.Get()->UserID);
 	LeaveGame();
 	CurrentUser = nullptr;
-	
+	FAAUserConfigModel::ResetModel();
 }
 
 void AAUChinaSever::KickOut(AAUTimeBoundary Boundary, const FString& Title, const FString& Content, bool IsServer) {
@@ -199,6 +199,11 @@ void AAUChinaSever::SubmitPayResult(int Amount, TFunction<void(bool Success)> Ca
 }
 
 FDateTime AAUChinaSever::GetCurrentTime() {
+	const int64 LastServerTime = AAUNet::GetServerTimeByLastRequest();
+	if (LastServerTime > 0)
+	{
+		return FDateTime::FromUnixTimestamp(LastServerTime) + 8 * ETimespan::TicksPerHour; // 东八区;
+	}
 	return AAUHelper::GetChinaCurrentTime() + FTimespan(TimeSpan * ETimespan::TicksPerSecond);
 }
 
@@ -208,7 +213,11 @@ int64 AAUChinaSever::CalculateRemainTime(AAUTimeBoundary& Boundary) {
 		Boundary = AAUTimeBoundaryNoLimit;
 		return AAUImpl::AdultRemainTime;
 	}
-	const bool IsHoliday = AAUHelper::IsHoliday(GetCurrentTime());
+	if(!CurrentUser.IsValid())
+	{
+		return 0;
+	}
+	const bool IsHoliday = AAUHelper::IsHoliday(GetCurrentTime(), CurrentUser->UserID);
 	if (!IsHoliday) {
 		Boundary = AAUTimeBoundaryCurfew;
 		return 0;
@@ -338,8 +347,9 @@ TSharedPtr<FAAUPlayableModel> AAUChinaSever::CheckPlayableLocal()
 	auto tip = FAAUserConfigModel::CurrentModel.Get()->local.time_range.text;
 	if(RemainTime > 0)
 	{
+		const FString Minutes = FString::Printf(TEXT("%lld"), static_cast<int64> (RemainTime));
 		PlayableModel->title = tip.allow.title;
-		PlayableModel->description_plain = tip.allow.description_plain;
+		PlayableModel->description_plain = tip.allow.description_plain.Replace(TEXT("# ${remaining} #"), *Minutes);
 	}else
 	{
 		PlayableModel->title = tip.reject.title;

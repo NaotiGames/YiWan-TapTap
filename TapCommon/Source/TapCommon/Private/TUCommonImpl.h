@@ -35,6 +35,12 @@ public:
 		FString RedirectUri, FString CodeChallenge, FString State, FString CodeChallengeMethod,
 		FString Version, FString SdkUa, FString Info, TFunction<void(const bool IsCancel,const bool IsFail, FString ErrMsg,   FString RedirectUrl)> CallBack);
 
+	virtual bool QueryTapDLC(FString dlcId);
+	virtual bool ShowStoreWithDLC(FString dlcId);
+	virtual bool HasTapLicense();
+
+	virtual void RegisterDLCOwnedCallback(TFunction<void(FString DLCId, const bool IsOwned)> Callback);
+	virtual void RegisterLicenseCallback(TFunction<void(const bool IsOwned)> Callback);
 private:
 	static TSharedPtr<TUCommonImpl> Instance;
 	

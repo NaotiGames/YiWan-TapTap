@@ -105,9 +105,13 @@ public:
 	static void TapThrobberDismiss();
  
 	static void TapThrobberShowToast(const FString& Toast, float TimeInterval = 3.f);
- 
+
+	static void TapToastThrobberShowToast(const FString& Toast, float TimeInterval = 3.f);
+
 	static void OnTapThrobberRemoveSelf(const TSharedRef<class STapThrobber>& Throbber);
 
+	static void OnTapToastThrobberRemoveSelf(const TSharedRef<class STapToastThrobber>& Throbber);
 	TSharedPtr<class STapThrobber> TapThrobber;
+	TSharedPtr<class STapToastThrobber> TapToastThrobber;
 	
 };

@@ -26,7 +26,7 @@
 
     <buildGradleAdditions>
         <insert>
-            dependencies.implementation(name: 'TapConnect_3.29.7', ext:'aar')
+            dependencies.implementation(name: 'TapConnect_3.30.1', ext:'aar')
         </insert>
     </buildGradleAdditions>
 </root>

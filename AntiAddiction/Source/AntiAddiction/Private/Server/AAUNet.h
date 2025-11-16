@@ -44,19 +44,22 @@ public:
 	static void CheckRealNameStateByUserId(const FString& UserID, TFunction<void(TSharedPtr<FAAURealNameResultModel> ModelPtr, const FAntiAddictionError& Error)> CallBack);
 
 	static void CheckRealNameStateByTapToken(const FString& UserID,  TSharedRef<FTUAccessToken> TapToken, FString Timestamp,TFunction<void(TSharedPtr<FAAURealNameResultModel> ModelPtr, const FAntiAddictionError& Error, const int64 Now)> CallBack);
-
-	static void CheckRealNameStateByOldToken(const FString& UserID, const FString& OldToken, TFunction<void(TSharedPtr<FAAURealNameResultModel> ModelPtr, const FAntiAddictionError& Error)> CallBack);
-
+	
 	static void FetchUserConfig(const FString& UserID, const FString& Token, TFunction<void(TSharedPtr<FAAUserConfigModel> ModelPtr, const FAntiAddictionError& Error)> CallBack);
 
 	static FString GenerateTapAuthorization(FString FinalUrl, TSharedRef<FTUAccessToken> TapToken, FString Timestamp);
 	
-	
+	static int64 GetServerTimeByLastRequest();
+
+	static void SetRequestServerTime(int64 ServerTime);
 
 private:
 	virtual TMap<FString, FString> CommonHeaders() override;
 	virtual TSharedPtr<FJsonObject> CommonParameters() override;
 	virtual bool ResetHeadersBeforeRequest() override;
+
+	static int64 LastServerTime ; // 上次获取的服务端时间
+	static int64 LastAppStartDurationTime ; // 上次获取的应用已启动时间
 	
 	
 };

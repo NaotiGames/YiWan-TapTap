@@ -41,6 +41,7 @@ public:
 		static FString const DeviceID2;		// 可传    Google AD ID
 		static FString const DeviceID3;		// 可传    Android ID
 		static FString const DeviceID4;		// 可传    OAID
+		static FString const DeviceID5;     // 必传    安全组提供的设备识别 ID 算法，用于后续数据串联
 		static FString const InstallID;		// 必传    标记每次安装 
 		static FString const PersistID;		// 必传    每次安装都一样
 		static FString const Channel;		// 必传    分包渠道

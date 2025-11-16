@@ -19,7 +19,7 @@ public:
 	static int64 IntervalForCurfew(FDateTime ChinaTime);
 
 	// 
-	static bool IsHoliday(FDateTime ChinaTime);
+	static bool IsHoliday(FDateTime ChinaTime, const FString& UserId);
 
 	static FString RemoveHtmlTag(const FString& Content);
 

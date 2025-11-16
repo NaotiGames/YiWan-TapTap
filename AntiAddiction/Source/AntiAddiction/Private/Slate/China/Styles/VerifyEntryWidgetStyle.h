@@ -39,6 +39,8 @@ struct ANTIADDICTION_API FVerifyEntryStyle : public FSlateWidgetStyle
 	FTextBlockStyle TailStyle;
 	UPROPERTY(EditAnywhere)
 	FMargin TailMargin;
+	UPROPERTY(EditAnywhere)
+	FScrollBoxStyle ContentScrollBoxStyle;
 };
 
 /**
