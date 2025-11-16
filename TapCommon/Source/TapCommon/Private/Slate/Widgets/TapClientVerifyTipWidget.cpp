@@ -187,12 +187,12 @@ void STapClientVerifyTipWidget::SetInitErrorType(int ErrorType)
 	}else if(ErrorType == TapClientBridge::TapSDKInitResult::NotLaunchedByPlatform) // 未通过 TapTap 客户端启动
 	{
 		ErrorTip = TEXT("获取游戏信息失败，请从 TapTap 客户端重新启动游戏");
+	}else if(ErrorType == TapClientBridge::TapSDKInitResult::PlatformVersionMismatch) // 未通过 TapTap 客户端启动
+	{
+		ErrorTip = TEXT("客户端版本不匹配，请将 TapTap 客户端升级到最新版本");
 	}else if(ErrorType == TapClientBridge::TapSDKInitResult::Unknown)
 	{
 		ErrorTip = TEXT("本地发生未知错误，请从 TapTap 客户端重新启动游戏");
-	}else if(ErrorType == TapClientBridge::TapSDKInitResult::Timeout)
-	{
-		ErrorTip = TEXT("获取游戏信息超时，请从 TapTap 客户端重新启动游戏");
 	}
 	TipTextBlock->SetText(ErrorTip);
 }

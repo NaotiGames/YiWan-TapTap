@@ -108,15 +108,28 @@ void PerfromWrapperResponseCallBack(const TSharedPtr<TUHttpResponse>& Response, 
 	}
 	FAntiAddictionError Error;
 	TSharedPtr<StructType> ModelPtr = nullptr;
-	GenerateWrapperResponse(Response, ModelPtr, Error);
+	const int64 ServerTime = GenerateWrapperResponse(Response, ModelPtr, Error);
+	if (ServerTime > 0)
+	{
+		AAUNet::SetRequestServerTime(ServerTime);
+	}
 	Callback(ModelPtr, Error);
 }
 
+int64 AAUNet::LastServerTime = 0;
+int64 AAUNet::LastAppStartDurationTime = 0;
 
 AAUNet::AAUNet() {
 	TimeoutSecs = 10;
 	Form = Json;
 }
+
+void AAUNet::SetRequestServerTime(int64 ServerTime)
+{
+	LastServerTime = ServerTime;
+	LastAppStartDurationTime = FPlatformTime::Seconds();
+}
+
 
 void AAUNet::GetServerTime(TFunction<void(TSharedPtr<FAAUServerTimeModel> ModelPtr, const FAntiAddictionError& Error)> CallBack) {
 	const TSharedPtr<AAUNet> request = MakeShareable(new AAUNet());
@@ -279,33 +292,6 @@ void AAUNet::CheckRealNameStateByTapToken(const FString& UserID, TSharedRef<FTUA
 }
 
 
-void AAUNet::CheckRealNameStateByOldToken(const FString& UserID, const FString& OldToken,
-								TFunction<void(TSharedPtr<FAAURealNameResultModel> ModelPtr, const FAntiAddictionError& Error)> CallBack) {
-	const TSharedPtr<AAUNet> request = MakeShareable(new AAUNet());
-	request->URL = AAURegionConfig::Get()->RealNameUrl() / "anti-addiction-token-upgrade?client_id="+ AAUImpl::Config.ClientID + "&user_identifier=" + FGenericPlatformHttp::UrlEncode(UserID);
-	request->Type = Post;
-	request->RepeatCount = 3;
-	request->Parameters->SetStringField("anti_addiction_token_v1", OldToken);
-	
-	request->onCompleted.BindLambda([=](TSharedPtr<TUHttpResponse> response) {
-		FAntiAddictionError Error;
-		TSharedPtr<FAAURealNameResultModel> ModelPtr = nullptr;
-		GenerateWrapperResponse(response, ModelPtr, Error);
-		if (!ModelPtr.IsValid()) {
-			if (response->state == TUHttpResponse::networkError) {
-				Error.msg = TEXT("网络异常，请稍后重试");
-			}
-			else {
-				Error.msg = TEXT("未查询到实名状态，防沉迷启动失败");
-			}
-		}
-		if (CallBack) {
-			CallBack(ModelPtr, Error);
-		}
-	});
-	TUHttpManager::Get().request(request);
-}
-
 void AAUNet::FetchUserConfig(const FString& UserID, const FString& Token, TFunction<void(TSharedPtr<FAAUserConfigModel> ModelPtr, const FAntiAddictionError& Error)> CallBack)
 {
 	const TSharedPtr<AAUNet> request = MakeShareable(new AAUNet());
@@ -391,6 +377,16 @@ FString AAUNet::GenerateTapAuthorization(FString originUrl, TSharedRef<FTUAccess
 	authToken = FString::Printf(TEXT("MAC id=\"%s\",ts=\"%s\",nonce=\"%s\",mac=\"%s\""), ToCStr(kid), *timeStr, *nonce, *mac);
 	return authToken;
 }
+
+int64 AAUNet::GetServerTimeByLastRequest()
+{
+	if(LastServerTime <= 0)
+	{
+		return 0;
+	}
+	return LastServerTime + FPlatformTime::Seconds() - LastAppStartDurationTime;
+}
+
 
 
 

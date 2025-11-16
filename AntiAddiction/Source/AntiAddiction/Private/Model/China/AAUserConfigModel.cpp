@@ -15,12 +15,12 @@ void FAAUserConfigModel::SaveToLocal(const FString& UserId,TSharedPtr<FAAUserCon
 	TUDataStorage<FAAUStorage>::SaveStruct(FAAUStorage::UserConfig+UserId, Model, true);
 }
 
-TSharedPtr<FAAUserConfigModel> FAAUserConfigModel::GetLocalModel() {
+TSharedPtr<FAAUserConfigModel> FAAUserConfigModel::GetLocalModel(const FString& UserId) {
 	if (FAAUserConfigModel::CurrentModel.IsValid()) {
 		return FAAUserConfigModel::CurrentModel;
 	}
 	// 先读取上次保存服务的配置，如果没有的话，在读取插件中预置的配置。
-	TSharedPtr<FAAUserConfigModel> ModelPtr = TUDataStorage<FAAUStorage>::LoadStruct<FAAUserConfigModel>(FAAUStorage::RealNameConfig);
+	TSharedPtr<FAAUserConfigModel> ModelPtr = TUDataStorage<FAAUStorage>::LoadStruct<FAAUserConfigModel>(FAAUStorage::UserConfig + UserId);
 	if (!ModelPtr.IsValid()) {
 		TUDebuger::ErrorLog("AntiAddiction Can not Get Local Model");
 	}

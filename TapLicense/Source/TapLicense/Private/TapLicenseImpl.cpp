@@ -1,7 +1,10 @@
 #include "TapLicenseImpl.h"
 #include "TUDebuger.h"
+
 #if PLATFORM_ANDROID
 #include "Android/TapLicenseAndroid.h"
+#elif PLATFORM_WINDOWS
+#include "Windows/TapLicenseWindows.h"
 #endif
 
 
@@ -17,6 +20,8 @@ TSharedPtr<FTapLicenseImpl>& FTapLicenseImpl::Get() {
 	if (!Instance.IsValid()) {
 #if PLATFORM_ANDROID
 		Instance = MakeShareable(new FTapLicenseAndroid);
+#elif PLATFORM_WINDOWS
+		Instance = MakeShareable(new FTapLicenseWindows);
 #else
 		Instance = MakeShareable(new FTapLicenseImpl);
 #endif
@@ -24,7 +29,11 @@ TSharedPtr<FTapLicenseImpl>& FTapLicenseImpl::Get() {
 	return Instance;
 }
 
-void FTapLicenseImpl::SetLicenseCallback(FSimpleDelegate OnSuccess) {
+void FTapLicenseImpl::QueryDLC(const TArray<FString>& DLCList) {
+	UnsupportedPlatformsLog
+}
+
+void FTapLicenseImpl::SetLicenseCallback(FSimpleDelegate OnSuccess, FSimpleDelegate OnFailed) {
 	UnsupportedPlatformsLog
 }
 
@@ -37,10 +46,6 @@ void FTapLicenseImpl::Check(bool bIsForce) {
 	UnsupportedPlatformsLog
 }
 
-void FTapLicenseImpl::QueryDLC(const TArray<FString>& DLCList) {
-	UnsupportedPlatformsLog
-}
-
 void FTapLicenseImpl::PurchaseDLC(const FString& DLC) {
 	UnsupportedPlatformsLog
 }
@@ -48,3 +53,4 @@ void FTapLicenseImpl::PurchaseDLC(const FString& DLC) {
 void FTapLicenseImpl::SetTestEnvironment(bool isTest){
 	UnsupportedPlatformsLog
 }
+

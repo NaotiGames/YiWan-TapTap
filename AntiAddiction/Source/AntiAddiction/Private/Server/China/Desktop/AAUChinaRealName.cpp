@@ -38,35 +38,16 @@ void AAUChinaRealName::CheckRealNameState(const FString& UserID, bool useAgeRang
 		CallBack(ModelPtr, FAntiAddictionError());
 		return;
 	}
-	if(!token.IsEmpty())
+	
+	TSharedPtr<FTUAccessToken> AccessToken = TapUELogin::GetAccessToken();
+	if( AAUChinaImpl::HasComplianceInTapToken(AccessToken, useAgeRange))
 	{
-		CheckRealNameStateByOldToken(UserID, token, [=](TSharedPtr<FAAURealNameResultModel> ModelPtr, const FAntiAddictionError& Error){
-			if(ModelPtr.IsValid())
-			{
-				CallBack(ModelPtr,Error);
-			}else
-			{
-				TSharedPtr<FTUAccessToken> AccessToken = TapUELogin::GetAccessToken();
-				if(AAUChinaImpl::HasComplianceInTapToken(AccessToken, useAgeRange))
-				{
-					CheckRealNameStateByTapToken(UserID, AccessToken.ToSharedRef(),TEXT(""), CallBack);
-				}else
-				{
-					CheckRealNameStateByUserId(UserID,CallBack);
-				}
-			}
-		});
+		CheckRealNameStateByTapToken(UserID, AccessToken.ToSharedRef(),TEXT(""),CallBack);
 	}else
 	{
-		TSharedPtr<FTUAccessToken> AccessToken = TapUELogin::GetAccessToken();
-		if( AAUChinaImpl::HasComplianceInTapToken(AccessToken, useAgeRange))
-		{
-			CheckRealNameStateByTapToken(UserID, AccessToken.ToSharedRef(),TEXT(""),CallBack);
-		}else
-		{
-			CheckRealNameStateByUserId(UserID,CallBack);
-		}
+		CheckRealNameStateByUserId(UserID,CallBack);
 	}
+	
 }
 
 void AAUChinaRealName::CheckRealNameStateByTapToken(const FString& UserID, const TSharedRef<FTUAccessToken> TapToken, const FString& Timestamp,
@@ -83,23 +64,6 @@ void AAUChinaRealName::CheckRealNameStateByTapToken(const FString& UserID, const
 			}
 		}
 		CallBack(ModelPtr,Error);
-	});
-}
-
-void AAUChinaRealName::CheckRealNameStateByOldToken(const FString& UserID,  const FString& OldToken,
-	TFunction<void(TSharedPtr<FAAURealNameResultModel> ModelPtr, const FAntiAddictionError& Error)> CallBack) {
-	AAUNet::CheckRealNameStateByOldToken(UserID, OldToken,[=](TSharedPtr<FAAURealNameResultModel> ModelPtr, const FAntiAddictionError& Error)->void
-	{
-		if(Error.httpState != TUHttpResponse::networkError && Error.httpState != TUHttpResponse::serverError)
-		{
-			TSharedPtr<FAAUUser> LoginUser = TUDataStorage<FAAUStorage>::LoadStruct<FAAUUser>(FAAUStorage::HasLoginedUser + UserID);
-			if(LoginUser.IsValid())
-			{
-				LoginUser->AccessToken = "";
-				TUDataStorage<FAAUStorage>::SaveStruct(FAAUStorage::HasLoginedUser + UserID, LoginUser);
-			}
-			CallBack(ModelPtr,Error);
-		}
 	});
 }
 

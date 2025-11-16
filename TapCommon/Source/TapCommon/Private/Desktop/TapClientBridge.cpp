@@ -11,6 +11,9 @@ RegisterCallbackFunc TapClientBridge::SDK_RegisterCallback = nullptr;
 UnRegisterCallbackFunc TapClientBridge::SDK_UnRegisterCallback = nullptr;
 RunCallbacksFunc TapClientBridge::SDK_RunCallbacks = nullptr;
 AsyncAuthorizeFunc TapClientBridge::SDK_AsyncAuthorize = nullptr;
+TapAppIsOwnedFunc TapClientBridge::SDK_TapAppIsOwned = nullptr;
+TapDLCShowStoreFunc TapClientBridge::SDK_TapDLCShowStore = nullptr;
+TapDLCIsOwnedFunc TapClientBridge::SDK_TapDLCIsOwned = nullptr;
 
 bool TapClientBridge::LoadSDK()
 {
@@ -32,11 +35,15 @@ bool TapClientBridge::LoadSDK()
     SDK_UnRegisterCallback = reinterpret_cast<UnRegisterCallbackFunc>(FPlatformProcess::GetDllExport(SDKHandle, TEXT("TapSDK_UnregisterCallback")));
 
     SDK_RunCallbacks = reinterpret_cast<RunCallbacksFunc>(FPlatformProcess::GetDllExport(SDKHandle, TEXT("TapSDK_RunCallbacks")));
-    SDK_AsyncAuthorize = reinterpret_cast<AsyncAuthorizeFunc>(FPlatformProcess::GetDllExport(SDKHandle, TEXT("TapUser_AsyncAuthorize")));
+    SDK_AsyncAuthorize = reinterpret_cast<AsyncAuthorizeFunc>(FPlatformProcess::GetDllExport(SDKHandle, TEXT("TapUser_AsyncAuthorize_internal")));
     SDK_GetOpenID = reinterpret_cast<GetClientIDFunc>(FPlatformProcess::GetDllExport(SDKHandle, TEXT("TapUser_GetOpenID")));
+    SDK_TapAppIsOwned = reinterpret_cast<TapAppIsOwnedFunc>(FPlatformProcess::GetDllExport(SDKHandle, TEXT("TapApps_IsOwned")));
+    SDK_TapDLCShowStore = reinterpret_cast<TapDLCShowStoreFunc>(FPlatformProcess::GetDllExport(SDKHandle, TEXT("TapDLC_ShowStore")));
+    SDK_TapDLCIsOwned = reinterpret_cast<TapDLCIsOwnedFunc>(FPlatformProcess::GetDllExport(SDKHandle, TEXT("TapDLC_IsOwned")));
 
     if (!SDK_Init || !SDK_Shutdown || !SDK_RestartApp || !SDK_GetClientID || 
-        !SDK_RegisterCallback || !SDK_RunCallbacks || !SDK_AsyncAuthorize || !SDK_GetOpenID)
+        !SDK_RegisterCallback || !SDK_RunCallbacks || !SDK_AsyncAuthorize || !SDK_GetOpenID ||
+        !SDK_TapAppIsOwned || !SDK_TapDLCShowStore || !SDK_TapDLCIsOwned)
     {
         UE_LOG(LogTemp, Error, TEXT("部分函数加载失败"));
         UnloadSDK();
@@ -112,4 +119,19 @@ uint32 TapClientBridge::AsyncAuthorize(const char* scopes, const char* response_
 {
     return SDK_AsyncAuthorize ? SDK_AsyncAuthorize(scopes, response_type, redirect_uri, code_challenge, state, code_challenge_method, version, sdk_ua,
                                     info) : 0;
+}
+
+bool TapClientBridge::TapAppIsOwned()
+{
+    return SDK_TapAppIsOwned ? SDK_TapAppIsOwned() : false;
+}
+
+bool TapClientBridge::TapDLCShowStore(const char* dlcId)
+{
+    return SDK_TapDLCShowStore ? SDK_TapDLCShowStore(dlcId) : false;
+}
+
+bool TapClientBridge::TapDLCIsOwned(const char* dlcId)
+{
+    return SDK_TapDLCIsOwned ? SDK_TapDLCIsOwned(dlcId) : false;
 }

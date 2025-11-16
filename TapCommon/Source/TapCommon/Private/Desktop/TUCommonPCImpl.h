@@ -12,7 +12,9 @@ public:
 
 	
 	static TFunction<void(const bool IsCancel, const bool IsFail, FString ErrMsg,   FString RedirectUrl)> CurrentLoginCallBack;
-	
+	static TFunction<void(FString DLCId, const bool IsOwned)> CurrentDLCCallBack ;
+	static TFunction<void(const bool IsOwned)> CurrentLicenseCallBack ;
+
 	virtual void SetLanguage(ELanguageType LanguageType) override;
 
 	virtual void IsLaunchedFromTapTapPC(TFunction<void(const bool Pass)> CallBack) override;
@@ -35,7 +37,19 @@ public:
 		FString RedirectUri, FString CodeChallenge, FString State, FString CodeChallengeMethod,
 		FString Version, FString SdkUa, FString Info, TFunction<void(const bool IsCancel, const bool IsFail, FString ErrMsg,  FString RedirectUrl)> CallBack) override;
 
+	virtual  bool QueryTapDLC(FString dlcId) override;
+	virtual  bool ShowStoreWithDLC(FString dlcId) override;
+	virtual  bool HasTapLicense() override;
+
+	virtual  void RegisterDLCOwnedCallback(TFunction<void(FString DLCId, const bool IsOwned)> Callback) override;
+	virtual  void RegisterLicenseCallback(TFunction<void(const bool IsOwned)> Callback) override;
+
+	
 	static void TapLoginDelegate(int CallbackId, void *UserData);
+
+	static void TapLicenseDelegate(int CallbackId, void *UserData);
+
+	static void TapDLCDelegate(int CallbackId, void *UserData);
 
 	// 用于接收 PC 客户端 回调
 	static void OnWorldTickListener(UWorld* World, ELevelTick TickType, float DeltaTime);

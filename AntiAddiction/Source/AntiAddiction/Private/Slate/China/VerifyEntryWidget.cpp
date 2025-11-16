@@ -17,6 +17,7 @@
 #include "Slate/Common/TapBoxWrapper.h"
 #include "Styles/VerifyEntryWidgetStyle.h"
 #include "Widgets/Images/SImage.h"
+#include "Widgets/Layout/SScrollBox.h"
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
@@ -32,6 +33,7 @@ void SVerifyEntryWidget::Construct(const FArguments& InArgs, const TSharedRef<AA
 	Impl = InImpl;
 	OnClose = InArgs._OnClose;
 	const FVerifyEntryStyle& Style = FModuleManager::GetModuleChecked<FAntiAddictionModule>("AntiAddiction").Style->GetWidgetStyle<FVerifyEntryStyle>("VerifyEntryStyle");
+
 	ChildSlot
 	[
 		SAssignNew(Wrapper, STapBoxWrapper, 600.f, 347.f)
@@ -58,12 +60,24 @@ void SVerifyEntryWidget::Construct(const FArguments& InArgs, const TSharedRef<AA
 				  .HAlign(HAlign_Fill)
 				  .VAlign(VAlign_Fill)
 				[
-					SNew(STextBlock)
+					SNew(SBox)
+					.HeightOverride(160)
+					[
+						SNew(SScrollBox)
+						.Style(&Style.ContentScrollBoxStyle)
+						.ScrollBarVisibility(EVisibility::Collapsed)
+						.AllowOverscroll(EAllowOverscroll::No)
+						+ SScrollBox::Slot()
+						[
+							SNew(STextBlock)
 								.TextStyle(&Style.ContentStyle)
 								.AutoWrapText(true)
 								.LineHeightPercentage(1.5)
 								.Justification(ETextJustify::Left)
 								.Text(FText::FromString(Word.description_plain))
+						]
+					]
+			
 				]
 				// + SVerticalBox::Slot() /// Content 1
 				//   .Padding(Style.ContentMargin)

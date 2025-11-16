@@ -59,6 +59,7 @@ protected:
 	void FetchRealNameConfig(const FString& UserId,TFunction<void(TSharedPtr<FAAURealNameConfigModel> ModelPtr, const FAntiAddictionError& Error)> CallBack);
 	void FetchUserConfig(const FString& UserId, const FString& Token, TFunction<void(TSharedPtr<FAAUserConfigModel> ModelPtr, const FAntiAddictionError& Error)> CallBack);
 	void QuickVerify(const TSharedRef<FTUAccessToken>& TapToken);
+	void ShowRealNameToast();
 
 	TWeakPtr<SVerifyEntryWidget> EntryWidget;
 	TWeakPtr<SManualVerifyWidget> ManualVerifyWidget;

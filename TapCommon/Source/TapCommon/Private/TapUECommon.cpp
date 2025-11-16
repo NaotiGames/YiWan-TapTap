@@ -55,3 +55,26 @@ void TapUECommon::TapLoginByTapPCClient(TArray<FString> Permissions, FString Res
 	TUCommonImpl::Get()->TapLoginByTapPCClient(Permissions, ResponseType,
 	RedirectUri, CodeChallenge, State, CodeChallengeMethod,Version, SdkUa, Info, CallBack);
 }
+
+bool TapUECommon::QueryTapDLC(FString dlcId)
+{
+	return TUCommonImpl::Get()->QueryTapDLC(dlcId);
+}
+bool TapUECommon::ShowStoreWithDLC(FString dlcId)
+{
+	return TUCommonImpl::Get()->ShowStoreWithDLC(dlcId);
+}
+bool TapUECommon::HasTapLicense()
+{
+	return TUCommonImpl::Get()->HasTapLicense();
+}
+
+void TapUECommon::RegisterDLCOwnedCallback(TFunction<void(FString DLCId, const bool IsOwned)> Callback)
+{
+	TUCommonImpl::Get()->RegisterDLCOwnedCallback(Callback);
+}
+
+void TapUECommon::RegisterLicenseCallback(TFunction<void(const bool IsOwned)> Callback)
+{
+	TUCommonImpl::Get()->RegisterLicenseCallback(Callback);
+}

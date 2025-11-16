@@ -1,5 +1,4 @@
 #include "TapLicenseAndroid.h"
-
 #include "TapJavaHelper.h"
 #include "TapJNI.h"
 #include "TapJNICallbackHelper.h"
@@ -10,7 +9,7 @@
 FTapLicenseAndroid::~FTapLicenseAndroid() {
 }
 
-void FTapLicenseAndroid::SetLicenseCallback(FSimpleDelegate OnSuccess) {
+void FTapLicenseAndroid::SetLicenseCallback(FSimpleDelegate OnSuccess, FSimpleDelegate OnFailed) {
 	TapJNI::JNI JNI;
 	auto ClassObject = JNI.FindClass(TapLicenseUE);
 	JNI.CallStaticVoidMethod(ClassObject, "setLicenseCallback", "(I)V", FTapJNICallbackHelper::AddCallBack(OnSuccess));

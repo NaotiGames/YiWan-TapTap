@@ -40,8 +40,6 @@ private:
 	int64 TimeSpan = 0;   // 本地时间与服务器时间的差值
 	double RemainTime = 0; // 剩余时间
 
-
-
 	FTimerHandle CheckTimer;
 	FTimerHandle CountDownTimer;
 
