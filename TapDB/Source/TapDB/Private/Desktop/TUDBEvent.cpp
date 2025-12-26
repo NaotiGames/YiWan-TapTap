@@ -31,6 +31,7 @@ FString const TUDBEvent::Key::Channel				= "channel";
 FString const TUDBEvent::Key::Width					= "width";
 FString const TUDBEvent::Key::Height				= "height";
 FString const TUDBEvent::Key::OSVersion				= "os_version";
+FString const TUDBEvent::Key::LangSystem			= "lang_system";
 FString const TUDBEvent::Key::Provider				= "provider";
 FString const TUDBEvent::Key::Network				= "network";
 FString const TUDBEvent::Key::AppVersion			= "app_version";
@@ -240,6 +241,7 @@ void TUDBEvent::GenerateCommonProperties() {
 	CommonProperties->SetNumberField(Key::Width, TUDeviceInfo::GetScreenWidth());
 	CommonProperties->SetNumberField(Key::Height, TUDeviceInfo::GetScreenHeight());
 	CommonProperties->SetStringField(Key::OSVersion, TUDeviceInfo::GetOSVersion());
+	CommonProperties->SetStringField(Key::LangSystem, FPlatformMisc::GetDefaultLanguage());
 	CommonProperties->SetStringField(Key::InstallID, TUDeviceInfo::GetInstallId());
 	CommonProperties->SetStringField(Key::PersistID, DeviceID);
 	CommonProperties->SetStringField(Key::DeviceID1, DeviceID);
