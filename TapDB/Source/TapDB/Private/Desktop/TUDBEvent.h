@@ -48,6 +48,7 @@ public:
 		static FString const Width;			// 必传    屏幕宽度
 		static FString const Height;		// 必传    屏幕高度
 		static FString const OSVersion;		// 必传    操作系统版本
+		static FString const LangSystem;	// 必传    系统语言
 		static FString const Provider;		// 必传    网络运营商
 		static FString const Network;		// 必传    网络类型，可选值为： [0,1,2,3,4,5,6,7] 0=Unknown 1=Ethernet(局域网) 2=WIFI 3=Cellular Network – Unknown Generation(移动网络，但是不确定是几代) 4=2G 5=3G 6=4G 7=5G
 		static FString const AppVersion;	// 必传  接入的应用版本
