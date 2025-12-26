@@ -210,7 +210,7 @@ void TUCommonPCImpl::TapLoginDelegate(int CallbackId, void* UserData)
 		{
 			TFunction<void(const bool IsCancel,  const bool IsFail, FString ErrMsg, FString RedirectUrl)> TempCopy = CurrentLoginCallBack;
 			const AuthorizeFinishedResponse* Response = static_cast<AuthorizeFinishedResponse*>(UserData);
-			UE_LOG(LogTap,Log,TEXT("TapLoginCallback dellgate recevied %d %hs"), Response->is_cancel,  UTF8_TO_TCHAR(Response->callback_uri) );
+			UE_LOG(LogTap,Log,TEXT("TapLoginCallback dellgate recevied %d %s"), Response->is_cancel,  UTF8_TO_TCHAR(Response->callback_uri) );
 
 			CurrentLoginCallBack = nullptr;
 			TapClientBridge::UnRegisterCallback(TapClientBridge::TapEventID::AuthorizeFinished_internal,TapLoginDelegate);
