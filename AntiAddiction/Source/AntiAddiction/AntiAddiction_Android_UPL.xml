@@ -8,6 +8,9 @@
     <!-- optional additions to proguard -->
     <proguardAdditions>
         <insert>
+        -dontwarn org.conscrypt.**
+        -dontwarn org.slf4j.**
+        -dontwarn org.slf4j.impl.**
         </insert>
     </proguardAdditions>
 

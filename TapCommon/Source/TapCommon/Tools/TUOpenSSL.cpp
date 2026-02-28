@@ -73,14 +73,14 @@ namespace TUOpenSSL_Space {
 		}
 
 		if (IsPublic) {
-			KeyString = "-----BEGIN RSA PUBLIC KEY-----\n" + Temp + "-----END RSA PUBLIC KEY-----";
+			KeyString = TEXT("-----BEGIN RSA PUBLIC KEY-----\n" + Temp + "-----END RSA PUBLIC KEY-----");
 			// TUDebuger::DisplayLog(KeyString);
 			auto KeyData = TUCrypto::UTF8Encode(KeyString);
 			BIO* _BIO = BIO_new_mem_buf(KeyData.GetData(), KeyData.Num());
 			_RSA = PEM_read_bio_RSAPublicKey(_BIO, nullptr, nullptr, nullptr);
 			BIO_free(_BIO);
 			if (_RSA == nullptr) {
-				KeyString = "-----BEGIN PUBLIC KEY-----\n" + Temp + "-----END PUBLIC KEY-----";
+				KeyString = TEXT("-----BEGIN PUBLIC KEY-----\n" + Temp + "-----END PUBLIC KEY-----");
 				// TUDebuger::DisplayLog(KeyString);
 				KeyData = TUCrypto::UTF8Encode(KeyString);
 				_BIO = BIO_new_mem_buf(KeyData.GetData(), KeyData.Num());
@@ -89,7 +89,7 @@ namespace TUOpenSSL_Space {
 			}
 		}
 		else {
-			KeyString = "-----BEGIN RSA PRIVATE KEY-----\n" + Temp + "-----END RSA PRIVATE KEY-----";
+			KeyString = TEXT("-----BEGIN RSA PRIVATE KEY-----\n" + Temp + "-----END RSA PRIVATE KEY-----");
 			// TUDebuger::DisplayLog(KeyString);
 			auto KeyData = TUCrypto::UTF8Encode(KeyString);
 			BIO* _BIO = BIO_new_mem_buf(KeyData.GetData(), KeyData.Num());
@@ -120,7 +120,7 @@ TArray<uint8> TUOpenSSL::RSAEncryptPublic(const TArray<uint8>& Content, const FS
 	TUOpenSSL_Space::RSA* RSA = TUOpenSSL_Space::GenerateKey(Key, true);
 
 	if (RSA == nullptr) {
-		TUDebuger::ErrorLog("RSA Public Key Load Fail");
+		TUDebuger::ErrorLog(TEXT("RSA Public Key Load Fail"));
 		return Result;
 	}
 	TUOpenSSL_Space::RSAEncryptOrDecrypt(Content, Result, RSA, TUOpenSSL_Space::RSA_public_encrypt, true);
@@ -133,7 +133,7 @@ TArray<uint8> TUOpenSSL::RSAEncryptPrivate(const TArray<uint8>& Content, const F
 	TUOpenSSL_Space::RSA* RSA = TUOpenSSL_Space::GenerateKey(Key, false);
 
 	if (RSA == nullptr) {
-		TUDebuger::ErrorLog("RSA Private Key Load Fail");
+		TUDebuger::ErrorLog(TEXT("RSA Private Key Load Fail"));
 		return Result;
 	}
 	TUOpenSSL_Space::RSAEncryptOrDecrypt(Content, Result, RSA, TUOpenSSL_Space::RSA_private_encrypt, true);
@@ -146,7 +146,7 @@ TArray<uint8> TUOpenSSL::RSADecryptPublic(const TArray<uint8>& Content, const FS
 	TUOpenSSL_Space::RSA* RSA = TUOpenSSL_Space::GenerateKey(Key, true);
 
 	if (RSA == nullptr) {
-		TUDebuger::ErrorLog("RSA Public Key Load Fail");
+		TUDebuger::ErrorLog(TEXT("RSA Public Key Load Fail"));
 		return Result;
 	}
 	TUOpenSSL_Space::RSAEncryptOrDecrypt(Content, Result, RSA, TUOpenSSL_Space::RSA_public_decrypt, false);
@@ -159,7 +159,7 @@ TArray<uint8> TUOpenSSL::RSADecryptPrivate(const TArray<uint8>& Content, const F
 	TUOpenSSL_Space::RSA* RSA = TUOpenSSL_Space::GenerateKey(Key, false);
 
 	if (RSA == nullptr) {
-		TUDebuger::ErrorLog("RSA Private Key Load Fail");
+		TUDebuger::ErrorLog(TEXT("RSA Private Key Load Fail"));
 		return Result;
 	}
 	TUOpenSSL_Space::RSAEncryptOrDecrypt(Content, Result, RSA, TUOpenSSL_Space::RSA_private_decrypt, false);

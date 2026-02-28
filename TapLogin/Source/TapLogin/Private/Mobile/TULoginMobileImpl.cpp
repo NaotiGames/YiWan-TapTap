@@ -38,24 +38,24 @@ void TULoginMobileImpl::Init(FTULoginConfig _Config) {
 	Writer->WriteObjectEnd();
 	Writer->Close();
 
-	TUMobileBridge::AsyncPerform(TAP_LOGIN_SERVICE, "initWithClientID", JsonOutString);
+	TUMobileBridge::AsyncPerform(TAP_LOGIN_SERVICE, TEXT("initWithClientID"), JsonOutString);
 }
 
 TSharedPtr<FTULoginProfileModel> TULoginMobileImpl::GetProfile() {
-	FString ResultStr = TUMobileBridge::Perform(TAP_LOGIN_SERVICE, "currentProfile", "");
+	FString ResultStr = TUMobileBridge::Perform(TAP_LOGIN_SERVICE, TEXT("currentProfile"), TEXT(""));
 	return TUJsonHelper::GetUStruct<FTULoginProfileModel>(ResultStr);
 }
 
 void TULoginMobileImpl::FetchProfile(
 	TFunction<void(TSharedPtr<FTULoginProfileModel> ModelPtr, const FTUError& Error)> CallBack) {
-	TUMobileBridge::AsyncPerform(TAP_LOGIN_SERVICE, "fetchProfileForCurrentAccessToken", "", [=](const FString& ResultStr) {
+	TUMobileBridge::AsyncPerform(TAP_LOGIN_SERVICE, TEXT("fetchProfileForCurrentAccessToken"), TEXT(""), [=](const FString& ResultStr) {
 		
 		if (CallBack == nullptr) {
 			return;
 		}
 		auto WapperPtr = TUJsonHelper::GetUStruct<FLoginWrapper>(ResultStr);
 		if (!WapperPtr.IsValid()) {
-			CallBack(nullptr, FTUError(FTUError::BRIDGE_EXECUTE, "TapLogin get profile error"));
+			CallBack(nullptr, FTUError(FTUError::BRIDGE_EXECUTE, TEXT("TapLogin get profile error")));
 			return;
 		}
 		if (WapperPtr->loginCallbackCode != 0) {
@@ -66,20 +66,20 @@ void TULoginMobileImpl::FetchProfile(
 		if (ModelPtr.IsValid()) {
 			CallBack(ModelPtr, FTUError());
 		} else {
-			CallBack(nullptr, FTUError(FTUError::BRIDGE_EXECUTE, "TapLogin get profile error"));
+			CallBack(nullptr, FTUError(FTUError::BRIDGE_EXECUTE, TEXT("TapLogin get profile error")));
 		}
 	});
 }
 
 TSharedPtr<FTUAccessToken> TULoginMobileImpl::GetAccessToken() {
-	FString ResultStr = TUMobileBridge::Perform(TAP_LOGIN_SERVICE, "currentAccessToken", "");
+	FString ResultStr = TUMobileBridge::Perform(TAP_LOGIN_SERVICE, TEXT("currentAccessToken"), TEXT(""));
 	return TUJsonHelper::GetUStruct<FTUAccessToken>(ResultStr);
 }
 
 void TULoginMobileImpl::Login(TArray<FString> Permissions, TFunction<void(const TUAuthResult& Result)> CallBack) {
-	TUMobileBridge::AsyncPerform(TAP_LOGIN_SERVICE, "registerLoginCallback", "", [=](const FString& ResultStr) {
+	TUMobileBridge::AsyncPerform(TAP_LOGIN_SERVICE, TEXT("registerLoginCallback"), TEXT(""), [=](const FString& ResultStr) {
 		//去掉注册
-		TUMobileBridge::AsyncPerform(TAP_LOGIN_SERVICE, "unregisterLoginCallback", "");
+		TUMobileBridge::AsyncPerform(TAP_LOGIN_SERVICE, TEXT("unregisterLoginCallback"), (""));
 
 		if (CallBack == nullptr) {
 			return;
@@ -105,7 +105,7 @@ void TULoginMobileImpl::Login(TArray<FString> Permissions, TFunction<void(const 
 			}
 		}
 
-		TUAuthResult Result = TUAuthResult::FailInit(FTUError(FTUError::BRIDGE_EXECUTE, "TapLogin Login Bridge Error"));
+		TUAuthResult Result = TUAuthResult::FailInit(FTUError(FTUError::BRIDGE_EXECUTE, TEXT("TapLogin Login Bridge Error")));
 		CallBack(Result);
 	});
 
@@ -116,11 +116,11 @@ void TULoginMobileImpl::Login(TArray<FString> Permissions, TFunction<void(const 
 	Writer->WriteObjectEnd();
 	Writer->Close();
 
-	TUMobileBridge::AsyncPerform(TAP_LOGIN_SERVICE, "startTapLogin", JsonOutString);
+	TUMobileBridge::AsyncPerform(TAP_LOGIN_SERVICE, TEXT("startTapLogin"), JsonOutString);
 }
 
 void TULoginMobileImpl::Logout() {
-	TUMobileBridge::AsyncPerform(TAP_LOGIN_SERVICE, "logout", "");
+	TUMobileBridge::AsyncPerform(TAP_LOGIN_SERVICE, TEXT("logout"), TEXT(""));
 }
 
 
@@ -164,7 +164,7 @@ void TULoginMobileImpl::QueryMutualList(FString Cursor, int Size,
 	Writer->WriteObjectEnd();
 	Writer->Close();
 
-	TUMobileBridge::AsyncPerform(TAP_FRIEND_SERVICE, "queryMutualList", JsonOutString, [=](const FString& ResultStr) {
+	TUMobileBridge::AsyncPerform(TAP_FRIEND_SERVICE, TEXT("queryMutualList"), JsonOutString, [=](const FString& ResultStr) {
 		if (CallBack == nullptr) {
 			return;
 		}
@@ -184,7 +184,7 @@ void TULoginMobileImpl::QueryMutualList(FString Cursor, int Size,
 				}
 			}
 		}
-		CallBack(nullptr, FTUError(FTUError::BRIDGE_EXECUTE, "TapLogin QueryMutualList Bridge Error"));
+		CallBack(nullptr, FTUError(FTUError::BRIDGE_EXECUTE, TEXT("TapLogin QueryMutualList Bridge Error")));
 	});
 #endif
 	

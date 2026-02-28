@@ -16,7 +16,7 @@
 
 void AAUChinaSever::Login(const FAAUUser& User, bool useAgeRange, const FString& session,TFunction<void(TSharedPtr<AAULoginResult> Result, const FAntiAddictionError& Error)> CallBack) {
 	if (CallBack == nullptr) {
-		TUDebuger::ErrorLog("AAUChinaSever::Login CallBack can not be nullptr");
+		TUDebuger::ErrorLog(TEXT("AAUChinaSever::Login CallBack can not be nullptr"));
 		return;
 	}
 	ResetValues();
@@ -28,7 +28,7 @@ void AAUChinaSever::Login(const FAAUUser& User, bool useAgeRange, const FString&
 		{
 			if(Error.httpState == TUHttpResponse::networkError || Error.httpState == TUHttpResponse::serverError)
 			{
-				if(FAAUserConfigModel::CurrentModel->anti_addiction.policy_active.Equals("time_range"))
+				if(FAAUserConfigModel::CurrentModel->anti_addiction.policy_active.Equals(TEXT("time_range")))
 				{
 					//使用本地实名
 					ModelPtr = CheckPlayableLocal();
@@ -155,7 +155,7 @@ void AAUChinaSever::CheckPayLimit(int Amount,
 	if (!CurrentUser.IsValid()) {
 		if (FailureHandler) {
 			FAntiAddictionError AntiError = FAntiAddictionError();
-			AntiError.msg = "还未登录，请先登录";
+			AntiError.msg = TEXT("还未登录，请先登录");
 			FailureHandler(AntiError);
 		}
 		return;
@@ -179,7 +179,7 @@ void AAUChinaSever::SubmitPayResult(int Amount, TFunction<void(bool Success)> Ca
 	if (!CurrentUser.IsValid()) {
 		if (FailureHandler) {
 			FAntiAddictionError AntiError = FAntiAddictionError();
-			AntiError.msg = "还未登录，请先登录";
+			AntiError.msg = TEXT("还未登录，请先登录");
 			FailureHandler(AntiError);
 		}
 		return;
@@ -301,7 +301,7 @@ void AAUChinaSever::CheckPlayable() {
 		{
 			if(Error.httpState == TUHttpResponse::networkError || Error.httpState == TUHttpResponse::serverError)
 			{
-				if(FAAUserConfigModel::CurrentModel->anti_addiction.policy_active.Equals("time_range"))
+				if(FAAUserConfigModel::CurrentModel->anti_addiction.policy_active.Equals(TEXT("time_range")))
 				{
 					//使用本地实名
 					ModelPtr = CheckPlayableLocal();

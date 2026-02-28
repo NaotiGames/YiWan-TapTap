@@ -124,12 +124,12 @@ void TULoginPCImpl::Login(TArray<FString> Permissions, TFunction<void(const TUAu
 void TULoginPCImpl::FetchUserByCode(const FString& Code, const FString& CodeVerifier, TFunction<void(const TUAuthResult& Result)> CallBack)
 {
 	const TSharedPtr<FJsonObject> Paras = MakeShareable(new FJsonObject);
-	Paras->SetStringField("client_id", TULoginImpl::Get()->Config.ClientID);
-	Paras->SetStringField("grant_type", "authorization_code");
-	Paras->SetStringField("secret_type", "hmac-sha-1");
-	Paras->SetStringField("code", Code);
-	Paras->SetStringField("redirect_uri", "tapoauth://authorize");
-	Paras->SetStringField("code_verifier", CodeVerifier);
+	Paras->SetStringField(TEXT("client_id"), TULoginImpl::Get()->Config.ClientID);
+	Paras->SetStringField(TEXT("grant_type"), TEXT("authorization_code"));
+	Paras->SetStringField(TEXT("secret_type"), TEXT("hmac-sha-1"));
+	Paras->SetStringField(TEXT("code"), Code);
+	Paras->SetStringField(TEXT("redirect_uri"), TEXT("tapoauth://authorize"));
+	Paras->SetStringField(TEXT("code_verifier"), CodeVerifier);
 						
 	TULoginNet::RequestAccessTokenFromWeb(
 		Paras,
@@ -152,7 +152,7 @@ void TULoginPCImpl::FetchUserByCode(const FString& Code, const FString& CodeVeri
 					{
 						FTUError TapError;
 						TapError.code = Error.code;
-						TapError.error_description = Error.error_description + ".\t" + "Get profile error";
+						TapError.error_description = Error.error_description + TEXT(".\t") + TEXT("Get profile error");
 						CallBack(TUAuthResult::FailInit(TapError));
 					}
 				});
@@ -171,7 +171,7 @@ void TULoginPCImpl::RegisterSyncTapUserListener()
 {
 	if(!MessageEndpoint.IsValid())
 	{
-		MessageEndpoint =FMessageEndpoint::Builder("TapUserSyncBus")
+		MessageEndpoint =FMessageEndpoint::Builder(TEXT("TapUserSyncBus"))
 							.ReceivingOnAnyThread()
 							.Handling<FTapCustomMessage>(this, &TULoginPCImpl::HandleSyncTapUserMessage);
 		if(MessageEndpoint.IsValid())
@@ -183,7 +183,7 @@ void TULoginPCImpl::RegisterSyncTapUserListener()
 
 void TULoginPCImpl::HandleSyncTapUserMessage(const FTapCustomMessage& Message, const TSharedRef<IMessageContext, ESPMode::ThreadSafe>& Context)
 {
-	if (Message.MessageName == "syncTapUser")
+	if (Message.MessageName == TEXT("syncTapUser"))
 	{
 		FString CacheOpenId = Message.MessageContent;
 		TSharedPtr<FTULoginProfileModel> CurrentProfile = GetProfile();
@@ -192,13 +192,12 @@ void TULoginPCImpl::HandleSyncTapUserMessage(const FTapCustomMessage& Message, c
 			FString OpenId = CurrentProfile.Get()->openid;
 			if(!OpenId.IsEmpty() && OpenId != CacheOpenId)
 			{
-				TUDebuger::DisplayLog(" current openid = " + OpenId + " cacheId = " + CacheOpenId);
+				TUDebuger::DisplayLog(TEXT(" current openid = ") + OpenId + TEXT(" cacheId = ") + CacheOpenId);
 				IsCacheUserSameWithTapClient = false;
 				Logout();
 			}else
 			{
-				TUDebuger::DisplayLog(" current openid = " + OpenId + " cacheId = " + CacheOpenId
-					+ " is same");
+				TUDebuger::DisplayLog(TEXT(" current openid = ") + OpenId + TEXT(" cacheId = ") + CacheOpenId + TEXT(" is same"));
 			}
 		}
 	}
@@ -212,10 +211,10 @@ void TULoginPCImpl::Logout() {
 }
 
 void  TULoginPCImpl::CheckAndRefreshToken() {
-	TUDebuger::DisplayLog("CheckAndRefreshToken start");
+	TUDebuger::DisplayLog(TEXT("CheckAndRefreshToken start"));
 	auto AccessTokenPtr = GetAccessToken();
 	if (AccessTokenPtr.IsValid()){
-		TUDebuger::DisplayLog("CheckAndRefreshToken has local token");
+		TUDebuger::DisplayLog(TEXT("CheckAndRefreshToken has local token"));
 		TULoginNet::RefreshToken(*AccessTokenPtr.Get()->access_token, [this](TSharedPtr<FTUAccessToken> Model, FTULoginError Error) {
 			if (Model.IsValid()) {
 				TUDebuger::DisplayLog(TEXT("CheckAndRefreshToken refresh token success "));
@@ -236,7 +235,7 @@ void  TULoginPCImpl::CheckAndRefreshToken() {
 				}
 			}else{
 				TUDebuger::DisplayLog(FString::Printf(TEXT("CheckAndRefreshToken fail code = %d, msg = %s "), Error.code ,*Error.error));
-				if(!Error.error.IsEmpty() && Error.error.Equals("invalid_grant")){
+				if(!Error.error.IsEmpty() && Error.error.Equals(TEXT("invalid_grant"))){
 					TUDebuger::DisplayLog(FString::Printf(TEXT("CheckAndRefreshToken fail delete cache")));
 					Logout();
 				}

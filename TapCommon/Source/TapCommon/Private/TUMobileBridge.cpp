@@ -68,7 +68,7 @@ void TUMobileBridge::DoCallBack(const FString& JsonStr) {
 	TUDebuger::DisplayLog(JsonStr);
 	auto ResultPtr = TUJsonHelper::GetUStruct<FTapResult>(JsonStr);
 	if (!ResultPtr.IsValid()) {
-		TUDebuger::ErrorLog("Mobile bridge call back error");
+		TUDebuger::ErrorLog(TEXT("Mobile bridge call back error"));
 		return;
 	}
 	// if (ResultPtr->code != 0) {

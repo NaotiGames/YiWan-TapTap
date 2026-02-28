@@ -17,10 +17,10 @@ namespace TapJNI {
 		FString Name = FString(UTF8_TO_TCHAR(name));
 		jclass Class = NULL;
 		if (Name.Find(TEXT("java/")) != INDEX_NONE) {
-			TUDebuger::DisplayLog("Env->FindClass: " + Name);
+			TUDebuger::DisplayLog(TEXT("Env->FindClass: ") + Name);
 			Class = Env->FindClass(name);
 		} else {
-			TUDebuger::DisplayLog("FAndroidApplication::FindJavaClass: " + Name);
+			TUDebuger::DisplayLog(TEXT("FAndroidApplication::FindJavaClass: ") + Name);
 			Class = FAndroidApplication::FindJavaClass(name);
 		}
 
@@ -124,12 +124,10 @@ namespace TapJNI {
 		jobject resultObject = Env->NewObjectV(*Class, Constructor, ap);
 		va_end(ap);
 		if (resultObject == NULL) {
-			TUDebuger::ErrorLog(
-				FString::Printf(TEXT("TapJNI NewObject: %s fail"), UTF8_TO_TCHAR(CtorSig)));
+			TUDebuger::ErrorLog(FString::Printf(TEXT("TapJNI NewObject: %s fail"), UTF8_TO_TCHAR(CtorSig)));
 		}
 		else {
-			TUDebuger::DisplayLog(
-				FString::Printf(TEXT("TapJNI NewObject: %s success"), UTF8_TO_TCHAR(CtorSig)));
+			TUDebuger::DisplayLog(FString::Printf(TEXT("TapJNI NewObject: %s success"), UTF8_TO_TCHAR(CtorSig)));
 		}
 		return MakeScopedJavaObject(Env, resultObject);
 	}
@@ -147,8 +145,7 @@ namespace TapJNI {
 				FString::Printf(TEXT("TapJNI Object Method: %s create object fail"), UTF8_TO_TCHAR(methodName)));
 		}
 		else {
-			TUDebuger::DisplayLog(
-				FString::Printf(TEXT("TapJNI Object Method: %s create object success"), UTF8_TO_TCHAR(methodName)));
+			TUDebuger::DisplayLog(FString::Printf(TEXT("TapJNI Object Method: %s create object success"), UTF8_TO_TCHAR(methodName)));
 		}
 		return MakeScopedJavaObject(Env, resultObject);
 	}
@@ -253,8 +250,7 @@ namespace TapJNI {
 				FString::Printf(TEXT("TapJNI Class Method: %s create object fail"), UTF8_TO_TCHAR(methodName)));
 		}
 		else {
-			TUDebuger::DisplayLog(
-				FString::Printf(TEXT("TapJNI Class Method: %s create object success"), UTF8_TO_TCHAR(methodName)));
+			TUDebuger::DisplayLog(FString::Printf(TEXT("TapJNI Class Method: %s create object success"), UTF8_TO_TCHAR(methodName)));
 		}
 		return MakeScopedJavaObject(Env, resultObject);
 	}
@@ -410,8 +406,7 @@ namespace TapJNI {
 				FString::Printf(TEXT("TapJNI GetObjectField: %s fail"), UTF8_TO_TCHAR(name)));
 		}
 		else {
-			TUDebuger::DisplayLog(
-				FString::Printf(TEXT("TapJNI GetObjectField: %s success"), UTF8_TO_TCHAR(name)));
+			TUDebuger::DisplayLog(FString::Printf(TEXT("TapJNI GetObjectField: %s success"), UTF8_TO_TCHAR(name)));
 		}
 		return MakeScopedJavaObject(Env, resultObject);
 	}
@@ -506,8 +501,7 @@ namespace TapJNI {
 				FString::Printf(TEXT("TapJNI GetStaticObjectField: %s fail"), UTF8_TO_TCHAR(name)));
 		}
 		else {
-			TUDebuger::DisplayLog(
-				FString::Printf(TEXT("TapJNI GetStaticObjectField: %s success"), UTF8_TO_TCHAR(name)));
+			TUDebuger::DisplayLog(FString::Printf(TEXT("TapJNI GetStaticObjectField: %s success"), UTF8_TO_TCHAR(name)));
 		}
 		return MakeScopedJavaObject(Env, resultObject);
 	}

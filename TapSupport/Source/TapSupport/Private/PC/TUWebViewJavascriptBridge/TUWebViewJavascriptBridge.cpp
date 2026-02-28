@@ -42,7 +42,7 @@ void TUWebViewJavascriptBridge::Reset() {
 }
 
 void TUWebViewJavascriptBridge::DisableJavscriptAlertBoxSafetyTimeout() {
-	SendData("_disableJavascriptAlertBoxSafetyTimeout", nullptr, nullptr);
+	SendData(TEXT("_disableJavascriptAlertBoxSafetyTimeout"), nullptr, nullptr);
 }
 
 void TUWebViewJavascriptBridge::EnableLogging() {
@@ -55,7 +55,7 @@ bool TUWebViewJavascriptBridge::ShouldPerformBridgeAction(const FString& Url) {
 		} else if(IsQueueMessageURL(Url)) {
 			EvaluateJavascript(WebViewJavascriptFetchQueyCommand());
 		} else {
-			TUDebuger::WarningLog("Unkown Message: "+ Url);
+			TUDebuger::WarningLog(TEXT("Unkown Message: ") + Url);
 		}
 		return true;
 	}
@@ -66,23 +66,23 @@ void TUWebViewJavascriptBridge::SendData(const FString& HandlerName, TUJSBridgeM
                                          TUJSBridgeResponseCallback ResponseCallback) {
 	TUJSBridgeMessage Message = MakeShareable(new FJsonObject);
 	if (Data.IsValid()) {
-		Message->SetObjectField("data", Data);
+		Message->SetObjectField(TEXT("data"), Data);
 	}
 	if (ResponseCallback) {
 		FString CallBackID = FString::Printf(TEXT("objc_cb_%lld"), ++UniqueID);
 		ResponseCallbacks.Add(CallBackID, ResponseCallback);
-		Message->SetStringField("callbackId", CallBackID);
+		Message->SetStringField(TEXT("callbackId"), CallBackID);
 	}
 	if (!HandlerName.IsEmpty()) {
-		Message->SetStringField("handlerName", HandlerName);
+		Message->SetStringField(TEXT("handlerName"), HandlerName);
 	}
 	QueueMessage(Message);
 }
 
 void TUWebViewJavascriptBridge::FlushMessageQueue(const FString& MessageQueueString) {
-	TUDebuger::DisplayLog("FlushMessageQueue: " + MessageQueueString);
+	TUDebuger::DisplayLog(TEXT("FlushMessageQueue: ") + MessageQueueString);
 	if (MessageQueueString.IsEmpty()) {
-		TUDebuger::WarningLog("WebViewJavascriptBridge: WARNING: ObjC got nil while fetching the message queue JSON from webview. This can happen if the WebViewJavascriptBridge JS is not currently present in the webview, e.g if the webview just loaded a new page.");
+		TUDebuger::WarningLog(TEXT("WebViewJavascriptBridge: WARNING: ObjC got nil while fetching the message queue JSON from webview. This can happen if the WebViewJavascriptBridge JS is not currently present in the webview, e.g if the webview just loaded a new page."));
 		return;
 	}
 	TArray<TSharedPtr<FJsonValue>> JsonArray;
@@ -153,12 +153,12 @@ bool TUWebViewJavascriptBridge::IsSchemeMatch(const FString& URL) {
 }
 
 bool TUWebViewJavascriptBridge::IsQueueMessageURL(const FString& URL) {
-	FString Host = FString("://") + kQueueHasMessage;
+	FString Host = FString(TEXT("://")) + kQueueHasMessage;
 	return IsSchemeMatch(URL) && URL.Contains(Host);
 }
 
 bool TUWebViewJavascriptBridge::IsBridgeLoadedURL(const FString& URL) {
-	FString Host = FString("://") + kBridgeLoaded;
+	FString Host = FString(TEXT("://")) + kBridgeLoaded;
 	return IsSchemeMatch(URL) && URL.Contains(Host);
 }
 
@@ -188,25 +188,25 @@ void TUWebViewJavascriptBridge::QueueMessage(const TUJSBridgeMessage& Message) {
 
 void TUWebViewJavascriptBridge::DispatchMessage(const TUJSBridgeMessage& Message) {
 	FString MessageJson = TUJsonHelper::GetJsonString(Message);
-	Log("SEND", Message);
+	Log(TEXT("SEND"), Message);
 	FString JavascriptCommand = FString::Printf(TEXT("WebViewJavascriptBridge._handleMessageFromObjC('%s');"), *MessageJson);
 	EvaluateJavascript(JavascriptCommand);
 }
 
 void TUWebViewJavascriptBridge::Log(const FString& Action, const TUJSBridgeMessage& Message) {
-	FString DebugInfo = "WVJB " + Action + ": " + TUJsonHelper::GetJsonString(Message);
+	FString DebugInfo = TEXT("WVJB ") + Action + TEXT(": ") + TUJsonHelper::GetJsonString(Message);
 	TUDebuger::DisplayLog(DebugInfo);
 }
 
 void TUWebViewJavascriptBridge::HandleEmbeddedCommunication(const FEmbeddedCallParamsHelper& Params) {
 	FString Error;
-	if (Params.Command == "handlejs")
+	if (Params.Command == TEXT("handlejs"))
 	{
 		FString Message = Params.Parameters.FindRef(TEXT("script"));
 		if (!Message.IsEmpty())
 		{
 			//OnJsMessageReceived(Message)
-			TUDebuger::DisplayLog("HandleEmbeddedCommunication: " + Message);
+			TUDebuger::DisplayLog(TEXT("HandleEmbeddedCommunication: ") + Message);
 			FlushMessageQueue(Message);
 		}
 	}

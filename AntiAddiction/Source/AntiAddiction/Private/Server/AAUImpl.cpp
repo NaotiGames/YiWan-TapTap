@@ -41,47 +41,47 @@ void AAUImpl::SetTestEnv(bool Enable)
 }
 
 void AAUImpl::InitImpl(const FAAUConfig& _Config) {
-	TUDebuger::ErrorLog("Unsupported");
+	TUDebuger::ErrorLog(TEXT("Unsupported"));
 }
 
 void AAUImpl::StartupWithTapTap(const FString& UserId)
 {
-	TUDebuger::ErrorLog("Unsupported");
+	TUDebuger::ErrorLog(TEXT("Unsupported"));
 }
 
 void AAUImpl::Exit() {
-	TUDebuger::ErrorLog("Unsupported");
+	TUDebuger::ErrorLog(TEXT("Unsupported"));
 }
 
 EAAUAgeLimit AAUImpl::GetAgeRange() {
-	TUDebuger::ErrorLog("Unsupported");
+	TUDebuger::ErrorLog(TEXT("Unsupported"));
 	return EAAUAgeLimit::Unknown;
 }
 
 int AAUImpl::GetRemainingTime() {
-	TUDebuger::ErrorLog("Unsupported");
+	TUDebuger::ErrorLog(TEXT("Unsupported"));
 	return 0;
 }
 
 void AAUImpl::EnterGame() {
-	TUDebuger::ErrorLog("Unsupported");
+	TUDebuger::ErrorLog(TEXT("Unsupported"));
 }
 
 void AAUImpl::LeaveGame() {
-	TUDebuger::ErrorLog("Unsupported");
+	TUDebuger::ErrorLog(TEXT("Unsupported"));
 }
 
 void AAUImpl::CheckPayLimit(int Amount, TFunction<void(bool Status)> CallBack, TFunction<void(const FString& Msg)> FailureHandler) {
-	TUDebuger::ErrorLog("Unsupported");
+	TUDebuger::ErrorLog(TEXT("Unsupported"));
 }
 
 void AAUImpl::SubmitPayResult(int Amount, TFunction<void(bool Success)> CallBack,
 	TFunction<void(const FString& Msg)> FailureHandler) {
-	TUDebuger::ErrorLog("Unsupported");
+	TUDebuger::ErrorLog(TEXT("Unsupported"));
 }
 
 FString AAUImpl::CurrentToken() {
-	TUDebuger::ErrorLog("Unsupported");
+	TUDebuger::ErrorLog(TEXT("Unsupported"));
 	return "";
 }
 

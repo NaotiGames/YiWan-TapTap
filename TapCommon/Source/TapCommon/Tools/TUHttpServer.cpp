@@ -45,7 +45,7 @@ FString TUHttpServer::RegisterNewRoute(const FString& Path,
 	TFunction<bool(const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete)> CallBack) {
 	auto Server = Get();
 	if (!Server->HttpRouter.IsValid() && Server->StartHttpServer()) {
-		TUDebuger::DisplayLog("Start Http Server Fail");
+		TUDebuger::DisplayLog(TEXT("Start Http Server Fail"));
 		return "";
 	}
 	if (Server->RegisteredRoutes.Find(Path)) {
@@ -80,7 +80,7 @@ FString TUHttpServer::RegisterNewRoute(const FString& Path,
 bool TUHttpServer::StartHttpServer()
 {
 	if (HttpRouter.IsValid()) {
-		TUDebuger::DisplayLog("HttpRouter already exist");
+		TUDebuger::DisplayLog(TEXT("HttpRouter already exist"));
 		return true;
 	}
 	static uint32 Port = 16445;
@@ -91,7 +91,7 @@ bool TUHttpServer::StartHttpServer()
 		HttpRouter = FHttpServerModule::Get().GetHttpRouter(Port++);
 		if (Port >= EndPort) {
 			Port = EndPort;
-			TUDebuger::ErrorLog("The end port is occupied");
+			TUDebuger::ErrorLog(TEXT("The end port is occupied"));
 			return false;
 		}
 	}
@@ -99,9 +99,9 @@ bool TUHttpServer::StartHttpServer()
 #if  PLATFORM_MAC
 	// Mac版第二次接回调失效，可能是兼容问题，先新开一个端口解决下bug。
 	Port++;
-	TUDebuger::DisplayLog("Http port add 1");
+	TUDebuger::DisplayLog(TEXT("Http port add 1"));
 #endif
-	TUDebuger::DisplayLog("HttpRouter get success");
+	TUDebuger::DisplayLog(TEXT("HttpRouter get success"));
 	FHttpServerModule::Get().StartAllListeners();
 	return true;
 }

@@ -74,42 +74,42 @@ void TUDBPCImpl::ClearUser() {
 }
 
 void TUDBPCImpl::SetName(const FString& Name) {
-	if (!CheckStringParam(Name, "Name")) {
+	if (!CheckStringParam(Name, TEXT("Name"))) {
 		return;
 	}
 	TSharedPtr<FJsonObject> NameProperties = MakeShareable(new FJsonObject);
-	NameProperties->SetStringField("user_name", Name);
+	NameProperties->SetStringField(TEXT("user_name"), Name);
 	TapDBEventPtr->UserUpdate(NameProperties);
 }
 
 void TUDBPCImpl::SetLevel(int Level) {
 	if (Level < 0) {
-		TUDebuger::ErrorLog("level is illegal, should >= 0");
+		TUDebuger::ErrorLog(TEXT("level is illegal, should >= 0"));
 		return;
 	}
 	TSharedPtr<FJsonObject> LevelProperties = MakeShareable(new FJsonObject);
-	LevelProperties->SetNumberField("level", Level);
+	LevelProperties->SetNumberField(TEXT("level"), Level);
 	TapDBEventPtr->UserUpdate(LevelProperties);
 }
 
 void TUDBPCImpl::SetServer(const FString& Server) {
-	if (!CheckStringParam(Server, "Server")) {
+	if (!CheckStringParam(Server, TEXT("Server"))) {
 		return;
 	}
 
 	TSharedPtr<FJsonObject> ServerInitialiseProperties = MakeShareable(new FJsonObject);
-	ServerInitialiseProperties->SetStringField("first_server", Server);
+	ServerInitialiseProperties->SetStringField(TEXT("first_server"), Server);
 	TapDBEventPtr->UserInitialize(ServerInitialiseProperties);
 
 	TSharedPtr<FJsonObject> ServerUpdateProperties = MakeShareable(new FJsonObject);
-	ServerUpdateProperties->SetStringField("current_server", Server);
+	ServerUpdateProperties->SetStringField(TEXT("current_server"), Server);
 	TapDBEventPtr->UserUpdate(ServerUpdateProperties);
 }
 
 void TUDBPCImpl::OnCharge(const FString& OrderId, const FString& Product, int Amount, const FString& CurrencyType,
                           const FString& Payment, TSharedPtr<FJsonObject> Properties) {
 	if (Amount <= 0 || Amount > 100000000000) {
-		TUDebuger::ErrorLog("amount is illegal, shoud > 0 and <= 100000000000");
+		TUDebuger::ErrorLog(TEXT("amount is illegal, shoud > 0 and <= 100000000000"));
 		return;
 	}
 	TSharedPtr<FJsonObject> EventDataDic = MakeShareable(new FJsonObject);
@@ -128,12 +128,12 @@ void TUDBPCImpl::OnCharge(const FString& OrderId, const FString& Product, int Am
 	if (!CurrencyType.IsEmpty()) {
 		EventDataDic->SetStringField(TUDBEvent::Key::CurrencyType, CurrencyType);
 	}
-	TapDBEventPtr->TrackEvent("charge", EventDataDic);
+	TapDBEventPtr->TrackEvent(TEXT("charge"), EventDataDic);
 }
 
 void TUDBPCImpl::TrackEvent(const FString& EventName, TSharedPtr<FJsonObject> Properties) {
 	if (EventName.IsEmpty()) {
-		TUDebuger::ErrorLog("eventName is empty, will do nothing.");
+		TUDebuger::ErrorLog(TEXT("eventName is empty, will do nothing."));
 		return;
 	}
 	TapDBEventPtr->TrackEvent(EventName, Properties);
@@ -184,11 +184,11 @@ void TUDBPCImpl::UserAdd(TSharedPtr<FJsonObject> Properties) {
 void TUDBPCImpl::SendPlayTime(int Interval, TFunction<void()> SuccessBlock) {
 	TSharedPtr<FJsonObject> TimeProperties = MakeShareable(new FJsonObject);
 	TimeProperties->SetNumberField(TUDBEvent::Key::Duration, Interval);
-	TapDBEventPtr->TrackEvent("play_game", TimeProperties, SuccessBlock);
+	TapDBEventPtr->TrackEvent(TEXT("play_game"), TimeProperties, SuccessBlock);
 }
 
 void TUDBPCImpl::SendDeviceLogin() const {
-	TapDBEventPtr->TrackEvent("device_login", nullptr);
+	TapDBEventPtr->TrackEvent(TEXT("device_login"), nullptr);
 }
 
 bool TUDBPCImpl::CheckStringParam(const FString& Para, const FString& ParaName) {

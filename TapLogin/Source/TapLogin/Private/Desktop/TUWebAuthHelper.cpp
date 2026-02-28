@@ -28,7 +28,7 @@ bool TUWebAuthHelper::ProcessWebAuth(const TArray<FString>& NeedPermissions, TFu
 	TWeakPtr<TUWebAuthHelper> WeakThisPtr(AsShared());
 	auto Callback = [=](const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete)
 	{
-		TUDebuger::DisplayLog("taptap web call back success");
+		TUDebuger::DisplayLog(TEXT("taptap web call back success"));
 		TSharedPtr<TUWebAuthHelper> SharedThis = WeakThisPtr.Pin();
 		if (!SharedThis.IsValid()) { return false; }
 		SharedThis->ProcessWebAuthRequest(Request, OnComplete);

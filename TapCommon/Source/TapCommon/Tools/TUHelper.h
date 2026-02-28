@@ -37,11 +37,11 @@ public:
 	{
 		TReturn Value = TReturn();
 		if (ClassName.IsEmpty()) {
-			TUDebuger::ErrorLog("InvokeFunction ClassName:" + ClassName + " is Empty");
+			TUDebuger::ErrorLog(TEXT("InvokeFunction ClassName:") + ClassName + TEXT(" is Empty"));
 			return Value;
 		}
 		if (FunctionName.IsEmpty()) {
-			TUDebuger::ErrorLog("InvokeFunction FunctionName:" + FunctionName + " is Empty");
+			TUDebuger::ErrorLog(TEXT("InvokeFunction FunctionName:") + FunctionName + TEXT(" is Empty"));
 			return Value;
 		}
 		
@@ -67,7 +67,7 @@ public:
 				return Value;
 			}
 		}
-		TUDebuger::ErrorLog("InvokeFunction ClassName:" + ClassName + " FunctionName:" + FunctionName + " Fail");
+		TUDebuger::ErrorLog(TEXT("InvokeFunction ClassName:") + ClassName + TEXT(" FunctionName:") + FunctionName + TEXT(" Fail"));
 		return Value;
 	}
 
@@ -75,11 +75,11 @@ public:
 	static void InvokeNoReturnFunction(FString ClassName, FString FunctionName, TArgs&&... args)
 	{
 		if (ClassName.IsEmpty()) {
-			TUDebuger::ErrorLog("InvokeFunction ClassName:" + ClassName + " is Empty");
+			TUDebuger::ErrorLog(TEXT("InvokeFunction ClassName:") + ClassName + TEXT(" is Empty"));
 			return;
 		}
 		if (FunctionName.IsEmpty()) {
-			TUDebuger::ErrorLog("InvokeFunction FunctionName:" + FunctionName + " is Empty");
+			TUDebuger::ErrorLog(TEXT("InvokeFunction FunctionName:") + FunctionName + TEXT(" is Empty"));
 			return;
 		}
 		
@@ -95,7 +95,7 @@ public:
 				return;
 			}
 		}
-		TUDebuger::ErrorLog("InvokeFunction ClassName:" + ClassName + " FunctionName:" + FunctionName + " Fail");
+		TUDebuger::ErrorLog(TEXT("InvokeFunction ClassName:") + ClassName + TEXT(" FunctionName:") + FunctionName + TEXT(" Fail"));
 	}
 
 	static FString CombinParameters(const TSharedPtr<FJsonObject>& parameters, bool isEncode = true);
