@@ -9,16 +9,22 @@ public:
 	static bool HasCheckLaunchStateByTapClient;
 	static int LastIsLaunchByTapPCResult ;
 	static FDelegateHandle TickDelegateHandle;
+	static bool HasRegisterTapPCStateChangeListener;
+	static TArray<TapTapPCStateChangeListener> TapPCStateChangeListeners;
 
 	
 	static TFunction<void(const bool IsCancel, const bool IsFail, FString ErrMsg,   FString RedirectUrl)> CurrentLoginCallBack;
 	static TFunction<void(FString DLCId, const bool IsOwned)> CurrentDLCCallBack ;
 	static TFunction<void(const bool IsOwned)> CurrentLicenseCallBack ;
-
+	
 	virtual void SetLanguage(ELanguageType LanguageType) override;
 
 	virtual void IsLaunchedFromTapTapPC(TFunction<void(const bool Pass)> CallBack) override;
-	
+
+	virtual void RegisterTapTapPCStateChangeListener(TapTapPCStateChangeListener Listener) override;
+
+	virtual void UnRegisterTapTapPCStateChangeListener(TapTapPCStateChangeListener Listener) override;
+
 	virtual bool TapControllerStartup(ETapControllerType InControllerType) override;
 
 	virtual void TapControllerUpdateConfig(const TSharedPtr<FTapControllerConfig>& InConfig) override;
@@ -50,6 +56,8 @@ public:
 	static void TapLicenseDelegate(int CallbackId, void *UserData);
 
 	static void TapDLCDelegate(int CallbackId, void *UserData);
+
+	static void TapClientStateChangedDelegate(int CallbackId, void *UserData);
 
 	// 用于接收 PC 客户端 回调
 	static void OnWorldTickListener(UWorld* World, ELevelTick TickType, float DeltaTime);

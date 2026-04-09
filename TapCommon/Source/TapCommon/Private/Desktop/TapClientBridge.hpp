@@ -40,6 +40,11 @@ struct DLCPlayableStatusChangedResponse
 	bool is_playable;
 };
 
+struct TapPCStateChangedResponse
+{
+	int state;
+};
+
 class TapClientBridge
 {
 public:
@@ -85,7 +90,7 @@ public:
 	{
 		// [1, 2000), reserved for TapTap platform events
 		// 1 reserved for TapTap platform events
-		// SystemStateChanged = 1,
+		SystemStateChanged = 1,
 
 		// [2001, 4000), reserved for TapTap user events
 		AuthorizeFinished_internal = 2001,

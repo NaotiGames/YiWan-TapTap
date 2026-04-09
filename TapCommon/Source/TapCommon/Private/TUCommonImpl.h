@@ -14,6 +14,10 @@ public:
 	virtual void setDurationStatisticsEnabled(bool bEnable);
 
 	virtual void IsLaunchedFromTapTapPC(TFunction<void(const bool Pass)> CallBack);
+
+	virtual void RegisterTapTapPCStateChangeListener(TapTapPCStateChangeListener Listener);
+
+	virtual void UnRegisterTapTapPCStateChangeListener(TapTapPCStateChangeListener Listener);
 	
 	virtual bool TapControllerStartup(ETapControllerType InControllerType);
 
