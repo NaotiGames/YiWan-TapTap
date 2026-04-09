@@ -37,6 +37,16 @@ void TUCommonImpl::IsLaunchedFromTapTapPC(TFunction<void(const bool Pass)> CallB
 	UnsupportedPlatformsLog
 }
 
+void TUCommonImpl::RegisterTapTapPCStateChangeListener(TapTapPCStateChangeListener Listener)
+{
+	UnsupportedPlatformsLog
+}
+
+void TUCommonImpl::UnRegisterTapTapPCStateChangeListener(TapTapPCStateChangeListener Listener)
+{
+	UnsupportedPlatformsLog
+}
+
 
 bool TUCommonImpl::TapControllerStartup(ETapControllerType InControllerType)
 {

@@ -14,12 +14,13 @@
 
 
 bool TUCommonPCImpl::HasCheckLaunchStateByTapClient = false;
+bool TUCommonPCImpl::HasRegisterTapPCStateChangeListener = false;
+TArray<TapTapPCStateChangeListener> TUCommonPCImpl::TapPCStateChangeListeners;
 // 上次检查 launch 结果 0 成功 1 未知错误 2 未找到客户端  3 未通过客户端启动
 int TUCommonPCImpl::LastIsLaunchByTapPCResult = -1;
 TFunction<void(const bool IsCancel,  const bool IsFail, FString ErrMsg, FString RedirectUrl)> TUCommonPCImpl::CurrentLoginCallBack = nullptr;
 TFunction<void(FString DLCId, const bool IsOwned)> TUCommonPCImpl::CurrentDLCCallBack = nullptr;
 TFunction<void(const bool IsOwned)> TUCommonPCImpl::CurrentLicenseCallBack = nullptr;
-
 FDelegateHandle TUCommonPCImpl::TickDelegateHandle;
 
 void TUCommonPCImpl::SetLanguage(ELanguageType LanguageType) {
@@ -120,6 +121,11 @@ void TUCommonPCImpl::IsLaunchedFromTapTapPC(TFunction<void(const bool Pass)> Cal
 				{
 					CallBack(true);  // 任务成功完成
 				}
+				if(!HasRegisterTapPCStateChangeListener && TapPCStateChangeListeners.Num() > 0)
+				{
+					HasRegisterTapPCStateChangeListener = true;
+					TapClientBridge::RegisterCallback(TapClientBridge::TapEventID::SystemStateChanged, TapClientStateChangedDelegate);
+				}
 			}else
 			{
 				TSharedRef<STapClientVerifyTipWidget> Widget = SNew(STapClientVerifyTipWidget);
@@ -141,6 +147,38 @@ void TUCommonPCImpl::IsLaunchedFromTapTapPC(TFunction<void(const bool Pass)> Cal
 #endif
 
 }
+
+void TUCommonPCImpl::RegisterTapTapPCStateChangeListener(TapTapPCStateChangeListener Listener)
+{
+#if PLATFORM_WINDOWS
+	AsyncTask(ENamedThreads::GameThread, [Listener]()
+	{
+		if(LastIsLaunchByTapPCResult == 0 && !HasRegisterTapPCStateChangeListener)
+		{
+			HasRegisterTapPCStateChangeListener = true;
+			TapClientBridge::RegisterCallback(TapClientBridge::TapEventID::SystemStateChanged, TapClientStateChangedDelegate);
+		}
+		if(Listener != nullptr && !TapPCStateChangeListeners.Contains(Listener))
+		{
+			TapPCStateChangeListeners.Add(Listener);
+		}
+	});
+	
+#endif
+	
+}
+
+void TUCommonPCImpl::UnRegisterTapTapPCStateChangeListener(TapTapPCStateChangeListener Listener)
+{
+#if PLATFORM_WINDOWS
+	AsyncTask(ENamedThreads::GameThread, [Listener]()
+	{
+		TapPCStateChangeListeners.Remove(Listener);
+	});
+	
+#endif
+}
+
 
 
 bool TUCommonPCImpl::TapControllerStartup(ETapControllerType InControllerType)
@@ -275,6 +313,22 @@ void TUCommonPCImpl::TapDLCDelegate(int CallbackId, void* UserData)
 			const DLCPlayableStatusChangedResponse* Response = static_cast<DLCPlayableStatusChangedResponse*>(UserData);
 			UE_LOG(LogTap,Log,TEXT("TapDLCDelegate dellgate recevied  %s %s "), UTF8_TO_TCHAR(Response->dlc_id), Response->is_playable ? TEXT("true") : TEXT("false"));
 			CurrentDLCCallBack(UTF8_TO_TCHAR(Response->dlc_id), Response->is_playable);
+		}
+	}
+}
+
+void TUCommonPCImpl::TapClientStateChangedDelegate(int CallbackId, void* UserData)
+{
+	if (CallbackId == TapClientBridge::TapEventID::SystemStateChanged)
+	{
+		if(UserData != nullptr)
+		{
+			const TapPCStateChangedResponse* Response = static_cast<TapPCStateChangedResponse*>(UserData);
+			UE_LOG(LogTap,Log,TEXT("TapPCState dellgate recevied  %d "), Response->state);
+			for (auto Listener : TapPCStateChangeListeners)
+			{
+				Listener(Response->state);
+			}
 		}
 	}
 }

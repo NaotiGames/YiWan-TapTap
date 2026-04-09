@@ -18,6 +18,17 @@ void TapUECommon::IsLaunchedFromTapTapPC(TFunction<void(const bool Pass)> CallBa
 	TUCommonImpl::Get()->IsLaunchedFromTapTapPC(CallBack);
 }
 
+void TapUECommon:: RegisterTapTapPCStateChangeListener(TapTapPCStateChangeListener Listener)
+{
+	TUCommonImpl::Get()->RegisterTapTapPCStateChangeListener(Listener);
+}
+
+void TapUECommon:: UnRegisterTapTapPCStateChangeListener(TapTapPCStateChangeListener Listener)
+{
+	TUCommonImpl::Get()->UnRegisterTapTapPCStateChangeListener(Listener);
+}
+
+
 
 bool TapUECommon::TapControllerStartup(ETapControllerType InControllerType)
 {

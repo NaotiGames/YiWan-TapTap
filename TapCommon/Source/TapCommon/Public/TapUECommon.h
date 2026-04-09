@@ -19,6 +19,10 @@ public:
 
 	static void IsLaunchedFromTapTapPC(TFunction<void(const bool Pass)> CallBack);
 
+	static void RegisterTapTapPCStateChangeListener(TapTapPCStateChangeListener Listener);
+	static void UnRegisterTapTapPCStateChangeListener(TapTapPCStateChangeListener Listener);
+
+
 	// 是否支持 Tap 客户端授权
 	static bool IsSupportLoginByTapClient();
 

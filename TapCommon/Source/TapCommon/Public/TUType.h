@@ -49,6 +49,16 @@ enum class ETapAntiAddictionConfigRegion : uint8 {
 	China,			// 国内            
 	Vietnam,		// 越南  
 };
+using TapTapPCStateChangeListener = void(*)(int);
+
+class TapTapPCState
+{
+	public:
+		static constexpr int Unknown = 0;
+		static constexpr int Online = 1;			          
+		static constexpr int Offline = 2;
+		static constexpr int Shutdown = 3;
+};
 
 USTRUCT(BlueprintType)
 struct TAPCOMMON_API FTapAntiAddictionConfig
